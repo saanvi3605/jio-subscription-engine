@@ -1,0 +1,114 @@
+spring:
+  application:
+    name: payments
+
+  datasource:
+    url: ${PAYMENTS_DB_URL:jdbc:postgresql://localhost:5432/payments}
+    username: ${PAYMENTS_DB_USER:payments}
+    password: ${PAYMENTS_DB_PASSWORD:payments}
+    hikari:
+      pool-name: payments-pool
+      maximum-pool-size: 10
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Flyway owns the schema; Hibernate only validates that entities match it.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  data:
+    redis:
+      host: ${PAYMENTS_REDIS_HOST:localhost}
+      port: ${PAYMENTS_REDIS_PORT:6379}
+
+  kafka:
+    bootstrap-servers: ${PAYMENTS_KAFKA_BOOTSTRAP:localhost:9092}
+    producer:
+      acks: all
+      properties:
+        enable.idempotence: true
+    consumer:
+      group-id: payments
+      auto-offset-reset: earliest
+
+  batch:
+    jdbc:
+      # Spring Batch metadata tables are created by Flyway, not by Boot.
+      initialize-schema: never
+    job:
+      enabled: false
+
+# Application-specific configuration (consumed in later phases).
+payments:
+  state-machine:
+    recovery:
+      enabled: true
+      stuck-after: PT5M
+  idempotency:
+    ttl: PT24H
+    lock-wait: PT5S
+    lock-lease: PT30S
+  gateway:
+    provider: mock
+  webhook:
+    hmac-secret: ${PAYMENTS_WEBHOOK_SECRET:change-me-dev-secret}
+  dunning:
+    enabled: true
+    max-attempts: 4
+    backoff: [PT1H, PT6H, PT24H, PT72H]
+    grace-period: PT168H
+  events:
+    topic:
+      payment: payments.payment.events
+      refund: payments.refund.events
+      payment-method: payments.paymentmethod.events
+      suspend-product: payments.product.suspend
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus, metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when_authorized
+  health:
+    readiness-state:
+      enabled: true
+    liveness-state:
+      enabled: true
+
+# Resilience4j defaults; per-instance tuning added with the PSP gateway.
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 20
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: PT10S
+        permitted-number-of-calls-in-half-open-state: 3
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: PT0.5S
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: PT3S
+  bulkhead:
+    configs:
+      default:
+        max-concurrent-calls: 25
