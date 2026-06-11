@@ -1,6 +1,7 @@
 package org.openapitools.api;
 
 import com.jio.productorder.client.CatalogValidationClient;
+import com.jio.productorder.client.CommunicationClient;
 import com.jio.productorder.client.CustomerValidationClient;
 import com.jio.productorder.client.InventoryProvisioningClient;
 import org.openapitools.model.Error;
@@ -39,18 +40,21 @@ public class ProductOrderApiController implements ProductOrderApi {
     private final CustomerValidationClient customerValidationClient;
     private final CatalogValidationClient catalogValidationClient;
     private final InventoryProvisioningClient inventoryProvisioningClient;
+    private final CommunicationClient communicationClient;
 
     @Autowired
     public ProductOrderApiController(NativeWebRequest request,
                                      ProductOrderRepository repository,
                                      CustomerValidationClient customerValidationClient,
                                      CatalogValidationClient catalogValidationClient,
-                                     InventoryProvisioningClient inventoryProvisioningClient) {
+                                     InventoryProvisioningClient inventoryProvisioningClient,
+                                     CommunicationClient communicationClient) {
         this.request = request;
         this.repository = repository;
         this.customerValidationClient = customerValidationClient;
         this.catalogValidationClient = catalogValidationClient;
         this.inventoryProvisioningClient = inventoryProvisioningClient;
+        this.communicationClient = communicationClient;
     }
 
     @Override
@@ -185,6 +189,15 @@ public class ProductOrderApiController implements ProductOrderApi {
                 && stateBefore != ProductOrderStateType.COMPLETED;
             if (justCompleted) {
                 inventoryProvisioningClient.provisionInventory(saved);
+
+                // Wire 16: send order confirmation SMS via TMF681
+                String customerId = saved.getRelatedParty() == null ? null :
+                    saved.getRelatedParty().stream()
+                        .filter(rp -> "customer".equalsIgnoreCase(rp.getRole())
+                                   || "Customer".equals(rp.getAtReferredType()))
+                        .map(RelatedParty::getId)
+                        .findFirst().orElse(null);
+                communicationClient.sendOrderConfirmation(saved.getId(), customerId);
             }
 
             return ResponseEntity.ok(saved);

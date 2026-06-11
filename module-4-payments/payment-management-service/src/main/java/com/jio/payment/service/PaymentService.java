@@ -1,5 +1,6 @@
 package com.jio.payment.service;
 
+import com.jio.payment.client.CommunicationClient;
 import com.jio.payment.client.CustomerClient;
 import com.jio.payment.client.InventoryClient;
 import com.jio.payment.client.PaymentMethodClient;
@@ -22,15 +23,18 @@ public class PaymentService {
     private final CustomerClient customerClient;
     private final InventoryClient inventoryClient;
     private final PaymentMethodClient paymentMethodClient;
+    private final CommunicationClient communicationClient;
 
     public PaymentService(PaymentRepository repository,
                           CustomerClient customerClient,
                           InventoryClient inventoryClient,
-                          PaymentMethodClient paymentMethodClient) {
+                          PaymentMethodClient paymentMethodClient,
+                          CommunicationClient communicationClient) {
         this.repository = repository;
         this.customerClient = customerClient;
         this.inventoryClient = inventoryClient;
         this.paymentMethodClient = paymentMethodClient;
+        this.communicationClient = communicationClient;
     }
 
     public Payment create(Payment payment) {
@@ -125,11 +129,17 @@ public class PaymentService {
 
             Payment saved = repository.save(existing);
 
-            // Wire F write-back: payment just became "settled" → mark CustomerAccount as PAID in TMF629
+            // Wire 14 write-back: payment just became "settled" → mark CustomerAccount as PAID in TMF629
             boolean justSettled = "settled".equals(saved.getStatus())
                 && !"settled".equals(statusBefore);
             if (justSettled && saved.getCustomerAccountId() != null) {
                 customerClient.markAccountPaid(saved.getCustomerAccountId());
+
+                // Wire 17: send payment receipt SMS via TMF681
+                communicationClient.sendPaymentReceipt(
+                    saved.getId(), saved.getCustomerId(),
+                    saved.getAmount(), saved.getCurrency()
+                );
             }
 
             return saved;

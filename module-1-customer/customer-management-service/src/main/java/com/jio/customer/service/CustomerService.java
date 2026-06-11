@@ -1,5 +1,6 @@
 package com.jio.customer.service;
 
+import com.jio.customer.client.CommunicationClient;
 import com.jio.customer.client.PartyClient;
 import com.jio.customer.model.Customer;
 import com.jio.customer.repository.CustomerRepository;
@@ -18,10 +19,14 @@ public class CustomerService {
 
     private final CustomerRepository repository;
     private final PartyClient partyClient;
+    private final CommunicationClient communicationClient;
 
-    public CustomerService(CustomerRepository repository, PartyClient partyClient) {
+    public CustomerService(CustomerRepository repository,
+                           PartyClient partyClient,
+                           CommunicationClient communicationClient) {
         this.repository = repository;
         this.partyClient = partyClient;
+        this.communicationClient = communicationClient;
     }
 
     public Customer create(Customer customer) {
@@ -38,7 +43,12 @@ public class CustomerService {
         if (customer.getStatus() == null || customer.getStatus().isBlank()) {
             customer.setStatus("prospect");
         }
-        return repository.save(customer);
+        Customer saved = repository.save(customer);
+
+        // Wire 15: fire welcome notification to TMF681 (fire-and-forget)
+        communicationClient.sendWelcome(saved.getId(), saved.getName());
+
+        return saved;
     }
 
     @Transactional(readOnly = true)
