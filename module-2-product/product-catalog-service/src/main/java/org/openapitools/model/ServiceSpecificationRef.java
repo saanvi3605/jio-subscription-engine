@@ -16,11 +16,18 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.*;
 import jakarta.annotation.Generated;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Transient;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
 
 /**
  * Service specification reference: ServiceSpecification(s) required to realize a ProductSpecification.
  */
 
+@Embeddable
 @Schema(name = "ServiceSpecificationRef", description = "Service specification reference: ServiceSpecification(s) required to realize a ProductSpecification.")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-08T16:22:46.010747900+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class ServiceSpecificationRef {
@@ -33,10 +40,17 @@ public class ServiceSpecificationRef {
 
   private @Nullable String version;
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "atBaseType",       column = @Column(name = "target_schema_base_type")),
+      @AttributeOverride(name = "atSchemaLocation", column = @Column(name = "target_schema_location")),
+      @AttributeOverride(name = "atType",           column = @Column(name = "target_schema_type"))
+  })
   private @Nullable TargetServiceSchema targetServiceSchema;
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;

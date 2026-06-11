@@ -16,14 +16,30 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.*;
 import jakarta.annotation.Generated;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Transient;
+import org.hibernate.annotations.UuidGenerator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * A ProductSpecificationCharacteristicValue object is used to define a set of attributes, each of which can be assigned to a corresponding set of attributes in a ProductSpecificationCharacteristic object. The values of the attributes in the ProductSpecificationCharacteristicValue object describe the values of the attributes that a corresponding ProductSpecificationCharacteristic object can take on.
  */
 
+@Entity
+@Table(name = "product_spec_char_value")
 @Schema(name = "ProductSpecificationCharacteristicValue", description = "A ProductSpecificationCharacteristicValue object is used to define a set of attributes, each of which can be assigned to a corresponding set of attributes in a ProductSpecificationCharacteristic object. The values of the attributes in the ProductSpecificationCharacteristicValue object describe the values of the attributes that a corresponding ProductSpecificationCharacteristic object can take on.")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-08T16:22:46.010747900+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class ProductSpecificationCharacteristicValue {
+
+  @Id
+  @UuidGenerator
+  @Column(name = "id")
+  @JsonIgnore
+  private String id;
 
   private @Nullable Boolean isDefault;
 
@@ -39,12 +55,15 @@ public class ProductSpecificationCharacteristicValue {
 
   private @Nullable String valueType;
 
+  @Embedded
   private @Nullable TimePeriod validFor;
 
+  @Transient
   private @Nullable Object value;
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;

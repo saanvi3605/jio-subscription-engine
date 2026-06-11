@@ -21,14 +21,35 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.*;
 import jakarta.annotation.Generated;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import org.hibernate.annotations.UuidGenerator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * A use of the ProductSpecificationCharacteristicValue by a ProductOffering to which additional properties (attributes) apply or override the properties of similar properties contained in ProductSpecificationCharacteristicValue. It should be noted that characteristics which their value(s) addressed by this object must exist in corresponding product specification. The available characteristic values for a ProductSpecificationCharacteristic in a Product specification can be modified at the ProductOffering level. For example, a characteristic &#39;Color&#39; might have values White, Blue, Green, and Red. But, the list of values can be restricted to e.g. White and Blue in an associated product offering. It should be noted that the list of values in &#39;ProductSpecificationCharacteristicValueUse&#39; is a strict subset of the list of values as defined in the corresponding product specification characteristics.
  */
 
+@Entity
+@Table(name = "prod_spec_char_value_use")
 @Schema(name = "ProductSpecificationCharacteristicValueUse", description = "A use of the ProductSpecificationCharacteristicValue by a ProductOffering to which additional properties (attributes) apply or override the properties of similar properties contained in ProductSpecificationCharacteristicValue. It should be noted that characteristics which their value(s) addressed by this object must exist in corresponding product specification. The available characteristic values for a ProductSpecificationCharacteristic in a Product specification can be modified at the ProductOffering level. For example, a characteristic 'Color' might have values White, Blue, Green, and Red. But, the list of values can be restricted to e.g. White and Blue in an associated product offering. It should be noted that the list of values in 'ProductSpecificationCharacteristicValueUse' is a strict subset of the list of values as defined in the corresponding product specification characteristics.")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-08T16:22:46.010747900+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class ProductSpecificationCharacteristicValueUse {
+
+  @Id
+  @UuidGenerator
+  @Column(name = "id")
+  @JsonIgnore
+  private String id;
 
   private @Nullable String description;
 
@@ -41,14 +62,31 @@ public class ProductSpecificationCharacteristicValueUse {
   private @Nullable String valueType;
 
   @Valid
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "prod_spec_char_value_use_id")
   private List<@Valid ProductSpecificationCharacteristicValue> productSpecCharacteristicValue = new ArrayList<>();
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "id",                                    column = @Column(name = "prod_spec_id")),
+      @AttributeOverride(name = "href",                                  column = @Column(name = "prod_spec_href")),
+      @AttributeOverride(name = "name",                                  column = @Column(name = "prod_spec_name")),
+      @AttributeOverride(name = "version",                               column = @Column(name = "prod_spec_version")),
+      @AttributeOverride(name = "atBaseType",                            column = @Column(name = "prod_spec_base_type")),
+      @AttributeOverride(name = "atType",                                column = @Column(name = "prod_spec_type")),
+      @AttributeOverride(name = "atReferredType",                        column = @Column(name = "prod_spec_referred_type")),
+      @AttributeOverride(name = "targetProductSchema.atBaseType",        column = @Column(name = "prod_spec_schema_base_type")),
+      @AttributeOverride(name = "targetProductSchema.atSchemaLocation",  column = @Column(name = "prod_spec_schema_location")),
+      @AttributeOverride(name = "targetProductSchema.atType",            column = @Column(name = "prod_spec_schema_type"))
+  })
   private @Nullable ProductSpecificationRef productSpecification;
 
+  @Embedded
   private @Nullable TimePeriod validFor;
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;

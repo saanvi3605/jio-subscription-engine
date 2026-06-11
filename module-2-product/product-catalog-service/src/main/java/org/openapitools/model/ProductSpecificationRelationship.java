@@ -16,25 +16,37 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.*;
 import jakarta.annotation.Generated;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Transient;
+import org.hibernate.annotations.UuidGenerator;
 
 /**
  * A migration, substitution, dependency or exclusivity relationship between/among product specifications.
  */
 
+@Entity
+@Table(name = "product_spec_relationship")
 @Schema(name = "ProductSpecificationRelationship", description = "A migration, substitution, dependency or exclusivity relationship between/among product specifications.")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-08T16:22:46.010747900+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class ProductSpecificationRelationship {
 
+  @Id
+  @UuidGenerator
   private @Nullable String id;
 
   private @Nullable String href;
 
   private @Nullable String relationshipType;
 
+  @Embedded
   private @Nullable TimePeriod validFor;
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;

@@ -15,11 +15,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.*;
 import jakarta.annotation.Generated;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Transient;
 
 /**
  * The category for grouping recommendations
  */
 
+@Embeddable
 @Schema(name = "CategoryRef", description = "The category for grouping recommendations")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-08T16:22:46.010747900+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class CategoryRef {
@@ -34,6 +37,7 @@ public class CategoryRef {
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;

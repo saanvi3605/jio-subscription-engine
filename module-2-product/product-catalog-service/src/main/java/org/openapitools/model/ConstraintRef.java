@@ -15,11 +15,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.*;
 import jakarta.annotation.Generated;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Transient;
 
 /**
  * Constraint reference. The Constraint resource represents a policy/rule applied to an entity or entity spec.
  */
 
+@Embeddable
 @Schema(name = "ConstraintRef", description = "Constraint reference. The Constraint resource represents a policy/rule applied to an entity or entity spec.")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-08T16:22:46.010747900+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class ConstraintRef {
@@ -34,6 +37,7 @@ public class ConstraintRef {
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;

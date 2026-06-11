@@ -17,25 +17,50 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.*;
 import jakarta.annotation.Generated;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Transient;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import org.hibernate.annotations.UuidGenerator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * A condition under which a ProductOffering is made available to Customers. For instance, a productOffering can be offered with multiple commitment periods.
  */
 
+@Entity
+@Table(name = "product_offering_term")
 @Schema(name = "ProductOfferingTerm", description = "A condition under which a ProductOffering is made available to Customers. For instance, a productOffering can be offered with multiple commitment periods.")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-08T16:22:46.010747900+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class ProductOfferingTerm {
+
+  @Id
+  @UuidGenerator
+  @Column(name = "id")
+  @JsonIgnore
+  private String id;
 
   private @Nullable String description;
 
   private @Nullable String name;
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "amount", column = @Column(name = "duration_amount")),
+      @AttributeOverride(name = "units",  column = @Column(name = "duration_units"))
+  })
   private @Nullable Quantity duration;
 
+  @Embedded
   private @Nullable TimePeriod validFor;
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;

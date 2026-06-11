@@ -23,15 +23,28 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.*;
 import jakarta.annotation.Generated;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import org.hibernate.annotations.UuidGenerator;
 
 /**
  * A collection of Product Offerings, intended for a specific DistributionChannel, enhanced with additional information such as SLA parameters, invoicing and shipping details
  */
 
+@Entity
+@Table(name = "catalog")
 @Schema(name = "Catalog", description = "A collection of Product Offerings, intended for a specific DistributionChannel, enhanced with additional information such as SLA parameters, invoicing and shipping details")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-08T16:22:46.010747900+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class Catalog {
 
+  @Id
+  @UuidGenerator
   private @Nullable String id;
 
   private @Nullable String href;
@@ -50,15 +63,21 @@ public class Catalog {
   private @Nullable String version;
 
   @Valid
+  @ElementCollection
+  @CollectionTable(name = "catalog_category_ref", joinColumns = @JoinColumn(name = "catalog_id"))
   private List<@Valid CategoryRef> category = new ArrayList<>();
 
   @Valid
+  @ElementCollection
+  @CollectionTable(name = "catalog_related_party", joinColumns = @JoinColumn(name = "catalog_id"))
   private List<@Valid RelatedParty> relatedParty = new ArrayList<>();
 
+  @Embedded
   private @Nullable TimePeriod validFor;
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;

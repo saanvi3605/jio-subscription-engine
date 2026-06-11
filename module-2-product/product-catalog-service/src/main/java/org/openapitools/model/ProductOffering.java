@@ -31,14 +31,20 @@ import java.time.OffsetDateTime;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
-import org.hibernate.type.SqlTypes;
 
 import java.util.*;
 import jakarta.annotation.Generated;
@@ -77,73 +83,106 @@ public class ProductOffering {
   private @Nullable String version;
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @ElementCollection
+  @CollectionTable(name = "po_agreement_ref", joinColumns = @JoinColumn(name = "product_offering_id"))
   private List<@Valid AgreementRef> agreement = new ArrayList<>();
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "product_offering_id")
   private List<@Valid AttachmentRefOrValue> attachment = new ArrayList<>();
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "product_offering_id")
   private List<@Valid BundledProductOffering> bundledProductOffering = new ArrayList<>();
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @ElementCollection
+  @CollectionTable(name = "po_category_ref", joinColumns = @JoinColumn(name = "product_offering_id"))
   private List<@Valid CategoryRef> category = new ArrayList<>();
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @ElementCollection
+  @CollectionTable(name = "po_channel_ref", joinColumns = @JoinColumn(name = "product_offering_id"))
   private List<@Valid ChannelRef> channel = new ArrayList<>();
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @ElementCollection
+  @CollectionTable(name = "po_market_segment_ref", joinColumns = @JoinColumn(name = "product_offering_id"))
   private List<@Valid MarketSegmentRef> marketSegment = new ArrayList<>();
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @ElementCollection
+  @CollectionTable(name = "po_place_ref", joinColumns = @JoinColumn(name = "product_offering_id"))
   private List<@Valid PlaceRef> place = new ArrayList<>();
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "product_offering_id")
   private List<@Valid ProductSpecificationCharacteristicValueUse> prodSpecCharValueUse = new ArrayList<>();
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @ElementCollection
+  @CollectionTable(name = "po_price_ref", joinColumns = @JoinColumn(name = "product_offering_id"))
   private List<@Valid ProductOfferingPriceRef> productOfferingPrice = new ArrayList<>();
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "product_offering_id")
   private List<@Valid ProductOfferingTerm> productOfferingTerm = new ArrayList<>();
 
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "id",                                    column = @Column(name = "prod_spec_ref_id")),
+      @AttributeOverride(name = "href",                                  column = @Column(name = "prod_spec_ref_href")),
+      @AttributeOverride(name = "name",                                  column = @Column(name = "prod_spec_ref_name")),
+      @AttributeOverride(name = "version",                               column = @Column(name = "prod_spec_ref_version")),
+      @AttributeOverride(name = "atBaseType",                            column = @Column(name = "prod_spec_ref_base_type")),
+      @AttributeOverride(name = "atType",                                column = @Column(name = "prod_spec_ref_type")),
+      @AttributeOverride(name = "atReferredType",                        column = @Column(name = "prod_spec_ref_referred_type")),
+      @AttributeOverride(name = "targetProductSchema.atBaseType",        column = @Column(name = "prod_spec_schema_base_type")),
+      @AttributeOverride(name = "targetProductSchema.atSchemaLocation",  column = @Column(name = "prod_spec_schema_location")),
+      @AttributeOverride(name = "targetProductSchema.atType",            column = @Column(name = "prod_spec_schema_type"))
+  })
   private @Nullable ProductSpecificationRef productSpecification;
 
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "id",             column = @Column(name = "res_cand_ref_id")),
+      @AttributeOverride(name = "href",           column = @Column(name = "res_cand_ref_href")),
+      @AttributeOverride(name = "name",           column = @Column(name = "res_cand_ref_name")),
+      @AttributeOverride(name = "version",        column = @Column(name = "res_cand_ref_version")),
+      @AttributeOverride(name = "atBaseType",     column = @Column(name = "res_cand_ref_base_type")),
+      @AttributeOverride(name = "atType",         column = @Column(name = "res_cand_ref_type")),
+      @AttributeOverride(name = "atReferredType", column = @Column(name = "res_cand_ref_referred_type"))
+  })
   private @Nullable ResourceCandidateRef resourceCandidate;
 
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "id",             column = @Column(name = "svc_cand_ref_id")),
+      @AttributeOverride(name = "href",           column = @Column(name = "svc_cand_ref_href")),
+      @AttributeOverride(name = "name",           column = @Column(name = "svc_cand_ref_name")),
+      @AttributeOverride(name = "version",        column = @Column(name = "svc_cand_ref_version")),
+      @AttributeOverride(name = "atBaseType",     column = @Column(name = "svc_cand_ref_base_type")),
+      @AttributeOverride(name = "atType",         column = @Column(name = "svc_cand_ref_type")),
+      @AttributeOverride(name = "atReferredType", column = @Column(name = "svc_cand_ref_referred_type"))
+  })
   private @Nullable ServiceCandidateRef serviceCandidate;
 
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "id",             column = @Column(name = "sla_ref_id")),
+      @AttributeOverride(name = "href",           column = @Column(name = "sla_ref_href")),
+      @AttributeOverride(name = "name",           column = @Column(name = "sla_ref_name")),
+      @AttributeOverride(name = "atBaseType",     column = @Column(name = "sla_ref_base_type")),
+      @AttributeOverride(name = "atType",         column = @Column(name = "sla_ref_type")),
+      @AttributeOverride(name = "atReferredType", column = @Column(name = "sla_ref_referred_type"))
+  })
   private @Nullable SLARef serviceLevelAgreement;
 
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @Embedded
   private @Nullable TimePeriod validFor;
 
   private @Nullable String atBaseType;

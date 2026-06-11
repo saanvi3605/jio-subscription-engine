@@ -23,15 +23,28 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.*;
 import jakarta.annotation.Generated;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import org.hibernate.annotations.UuidGenerator;
 
 /**
  * The category resource is used to group product offerings, service and resource candidates in logical containers. Categories can contain other categories and/or product offerings, resource or service candidates.
  */
 
+@Entity
+@Table(name = "category")
 @Schema(name = "Category", description = "The category resource is used to group product offerings, service and resource candidates in logical containers. Categories can contain other categories and/or product offerings, resource or service candidates.")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-08T16:22:46.010747900+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class Category {
 
+  @Id
+  @UuidGenerator
   private @Nullable String id;
 
   private @Nullable String href;
@@ -52,15 +65,21 @@ public class Category {
   private @Nullable String version;
 
   @Valid
+  @ElementCollection
+  @CollectionTable(name = "category_product_offering_ref", joinColumns = @JoinColumn(name = "category_id"))
   private List<@Valid ProductOfferingRef> productOffering = new ArrayList<>();
 
   @Valid
+  @ElementCollection
+  @CollectionTable(name = "category_sub_category_ref", joinColumns = @JoinColumn(name = "category_id"))
   private List<@Valid CategoryRef> subCategory = new ArrayList<>();
 
+  @Embedded
   private @Nullable TimePeriod validFor;
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;

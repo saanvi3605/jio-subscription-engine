@@ -16,23 +16,47 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.*;
 import jakarta.annotation.Generated;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Transient;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import org.hibernate.annotations.UuidGenerator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * A tax item is created for each tax rate and tax type used in the bill.
  */
 
+@Entity
+@Table(name = "tax_item")
 @Schema(name = "TaxItem", description = "A tax item is created for each tax rate and tax type used in the bill.")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-08T16:22:46.010747900+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class TaxItem {
+
+  @Id
+  @UuidGenerator
+  @Column(name = "id")
+  @JsonIgnore
+  private String id;
 
   private @Nullable String taxCategory;
 
   private @Nullable Float taxRate;
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "unit",  column = @Column(name = "tax_amount_unit")),
+      @AttributeOverride(name = "value", column = @Column(name = "tax_amount_value"))
+  })
   private @Nullable Money taxAmount;
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;

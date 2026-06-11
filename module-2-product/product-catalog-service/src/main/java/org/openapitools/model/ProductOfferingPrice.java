@@ -30,15 +30,32 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.*;
 import jakarta.annotation.Generated;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.UuidGenerator;
 
 /**
  * Is based on both the basic cost to develop and produce products and the enterprises policy on revenue targets. This price may be further revised through discounting (productOfferPriceAlteration). The price, applied for a productOffering may also be influenced by the productOfferingTerm, the customer selected, eg: a productOffering can be offered with multiple terms, like commitment periods for the contract. The price may be influenced by this productOfferingTerm. A productOffering may be cheaper with a 24 month commitment than with a 12 month commitment.
  */
 
+@Entity
+@Table(name = "product_offering_price")
 @Schema(name = "ProductOfferingPrice", description = "Is based on both the basic cost to develop and produce products and the enterprises policy on revenue targets. This price may be further revised through discounting (productOfferPriceAlteration). The price, applied for a productOffering may also be influenced by the productOfferingTerm, the customer selected, eg: a productOffering can be offered with multiple terms, like commitment periods for the contract. The price may be influenced by this productOfferingTerm. A productOffering may be cheaper with a 24 month commitment than with a 12 month commitment.")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-08T16:22:46.010747900+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class ProductOfferingPrice {
 
+  @Id
+  @UuidGenerator
   private @Nullable String id;
 
   private @Nullable String href;
@@ -65,33 +82,60 @@ public class ProductOfferingPrice {
   private @Nullable String version;
 
   @Valid
+  @ElementCollection
+  @CollectionTable(name = "pop_bundled_price_rel", joinColumns = @JoinColumn(name = "product_offering_price_id"))
   private List<@Valid BundledProductOfferingPriceRelationship> bundledPopRelationship = new ArrayList<>();
 
   @Valid
+  @ElementCollection
+  @CollectionTable(name = "pop_constraint_ref", joinColumns = @JoinColumn(name = "product_offering_price_id"))
   private List<@Valid ConstraintRef> constraint = new ArrayList<>();
 
   @Valid
+  @ElementCollection
+  @CollectionTable(name = "pop_place_ref", joinColumns = @JoinColumn(name = "product_offering_price_id"))
   private List<@Valid PlaceRef> place = new ArrayList<>();
 
   @Valid
+  @ElementCollection
+  @CollectionTable(name = "pop_price_relationship", joinColumns = @JoinColumn(name = "product_offering_price_id"))
   private List<@Valid ProductOfferingPriceRelationship> popRelationship = new ArrayList<>();
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "unit",  column = @Column(name = "price_unit")),
+      @AttributeOverride(name = "value", column = @Column(name = "price_value"))
+  })
   private @Nullable Money price;
 
   @Valid
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "product_offering_price_id")
   private List<@Valid PricingLogicAlgorithm> pricingLogicAlgorithm = new ArrayList<>();
 
   @Valid
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "product_offering_price_id")
   private List<@Valid ProductSpecificationCharacteristicValueUse> prodSpecCharValueUse = new ArrayList<>();
 
   @Valid
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "product_offering_price_id")
   private List<@Valid ProductOfferingTerm> productOfferingTerm = new ArrayList<>();
 
   @Valid
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "product_offering_price_id")
   private List<@Valid TaxItem> tax = new ArrayList<>();
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "amount", column = @Column(name = "unit_of_measure_amount")),
+      @AttributeOverride(name = "units",  column = @Column(name = "unit_of_measure_units"))
+  })
   private @Nullable Quantity unitOfMeasure;
 
+  @Embedded
   private @Nullable TimePeriod validFor;
 
   private @Nullable String atBaseType;

@@ -16,15 +16,28 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.*;
 import jakarta.annotation.Generated;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Transient;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import org.hibernate.annotations.UuidGenerator;
 
 /**
  * A type of ProductOffering that belongs to a grouping of ProductOfferings made available to the market. It inherits of all attributes of ProductOffering.
  */
 
+@Entity
+@Table(name = "bundled_product_offering")
 @Schema(name = "BundledProductOffering", description = "A type of ProductOffering that belongs to a grouping of ProductOfferings made available to the market. It inherits of all attributes of ProductOffering.")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-08T16:22:46.010747900+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class BundledProductOffering {
 
+  @Id
+  @UuidGenerator
   private @Nullable String id;
 
   private @Nullable String href;
@@ -33,10 +46,16 @@ public class BundledProductOffering {
 
   private @Nullable String name;
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "atBaseType", column = @Column(name = "option_at_base_type")),
+      @AttributeOverride(name = "atType",     column = @Column(name = "option_at_type"))
+  })
   private @Nullable BundledProductOfferingOption bundledProductOfferingOption;
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;

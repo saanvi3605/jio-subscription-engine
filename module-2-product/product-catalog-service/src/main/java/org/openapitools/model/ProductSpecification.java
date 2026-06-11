@@ -29,15 +29,33 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.*;
 import jakarta.annotation.Generated;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import org.hibernate.annotations.UuidGenerator;
 
 /**
  * Is a detailed description of a tangible or intangible object made available externally in the form of a ProductOffering to customers or other parties playing a party role.
  */
 
+@Entity
+@Table(name = "product_specification")
 @Schema(name = "ProductSpecification", description = "Is a detailed description of a tangible or intangible object made available externally in the form of a ProductOffering to customers or other parties playing a party role.")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-08T16:22:46.010747900+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class ProductSpecification {
 
+  @Id
+  @UuidGenerator
   private @Nullable String id;
 
   private @Nullable String href;
@@ -60,32 +78,54 @@ public class ProductSpecification {
   private @Nullable String version;
 
   @Valid
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "product_specification_id")
   private List<@Valid AttachmentRefOrValue> attachment = new ArrayList<>();
 
   @Valid
+  @ElementCollection
+  @CollectionTable(name = "ps_bundled_product_spec", joinColumns = @JoinColumn(name = "product_specification_id"))
   private List<@Valid BundledProductSpecification> bundledProductSpecification = new ArrayList<>();
 
   @Valid
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "product_specification_id")
   private List<@Valid ProductSpecificationCharacteristic> productSpecCharacteristic = new ArrayList<>();
 
   @Valid
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "product_specification_id")
   private List<@Valid ProductSpecificationRelationship> productSpecificationRelationship = new ArrayList<>();
 
   @Valid
+  @ElementCollection
+  @CollectionTable(name = "ps_related_party", joinColumns = @JoinColumn(name = "product_specification_id"))
   private List<@Valid RelatedParty> relatedParty = new ArrayList<>();
 
   @Valid
+  @ElementCollection
+  @CollectionTable(name = "ps_resource_spec_ref", joinColumns = @JoinColumn(name = "product_specification_id"))
   private List<@Valid ResourceSpecificationRef> resourceSpecification = new ArrayList<>();
 
   @Valid
+  @ElementCollection
+  @CollectionTable(name = "ps_service_spec_ref", joinColumns = @JoinColumn(name = "product_specification_id"))
   private List<@Valid ServiceSpecificationRef> serviceSpecification = new ArrayList<>();
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "atBaseType",       column = @Column(name = "target_schema_base_type")),
+      @AttributeOverride(name = "atSchemaLocation", column = @Column(name = "target_schema_location")),
+      @AttributeOverride(name = "atType",           column = @Column(name = "target_schema_type"))
+  })
   private @Nullable TargetProductSchema targetProductSchema;
 
+  @Embedded
   private @Nullable TimePeriod validFor;
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;

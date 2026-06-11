@@ -15,11 +15,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.*;
 import jakarta.annotation.Generated;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Transient;
 
 /**
  * The channel to which the resource reference to. e.g. channel for selling product offerings, channel for opening a trouble ticket etc..
  */
 
+@Embeddable
 @Schema(name = "ChannelRef", description = "The channel to which the resource reference to. e.g. channel for selling product offerings, channel for opening a trouble ticket etc..")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-08T16:22:46.010747900+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class ChannelRef {
@@ -32,6 +35,7 @@ public class ChannelRef {
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;

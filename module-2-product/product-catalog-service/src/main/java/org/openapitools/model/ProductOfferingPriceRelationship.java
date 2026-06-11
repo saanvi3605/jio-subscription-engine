@@ -15,11 +15,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.*;
 import jakarta.annotation.Generated;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Transient;
 
 /**
  * Describes a non-composite relationship between product offering prices. For example one price might be an discount alteration for another price.
  */
 
+@Embeddable
 @Schema(name = "ProductOfferingPriceRelationship", description = "Describes a non-composite relationship between product offering prices. For example one price might be an discount alteration for another price.")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-08T16:22:46.010747900+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class ProductOfferingPriceRelationship {
@@ -34,6 +37,7 @@ public class ProductOfferingPriceRelationship {
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;
