@@ -1,0 +1,33 @@
+# Maven build output
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Spring Boot
+application-local.properties
+application-secret.properties
+
+# Claude Code workspace
+.claude/
+
+# OpenAPI generator temp
+.openapi-generator/
