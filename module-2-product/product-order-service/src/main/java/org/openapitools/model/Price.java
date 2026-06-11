@@ -12,6 +12,12 @@ import java.time.OffsetDateTime;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Transient;
 
 
 import java.util.*;
@@ -21,6 +27,7 @@ import jakarta.annotation.Generated;
  * Provides all amounts (tax included, duty free, tax rate), used currency and percentage to apply for Price Alteration.
  */
 
+@Embeddable
 @Schema(name = "Price", description = "Provides all amounts (tax included, duty free, tax rate), used currency and percentage to apply for Price Alteration.")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-05T16:24:09.119988100+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class Price {
@@ -29,12 +36,27 @@ public class Price {
 
   private @Nullable Float taxRate;
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "unit",        column = @Column(name = "duty_free_unit")),
+      @AttributeOverride(name = "value",       column = @Column(name = "duty_free_value")),
+      @AttributeOverride(name = "atBaseType",  column = @Column(name = "duty_free_at_base_type")),
+      @AttributeOverride(name = "atType",      column = @Column(name = "duty_free_at_type"))
+  })
   private @Nullable Money dutyFreeAmount;
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "unit",        column = @Column(name = "tax_incl_unit")),
+      @AttributeOverride(name = "value",       column = @Column(name = "tax_incl_value")),
+      @AttributeOverride(name = "atBaseType",  column = @Column(name = "tax_incl_at_base_type")),
+      @AttributeOverride(name = "atType",      column = @Column(name = "tax_incl_at_type"))
+  })
   private @Nullable Money taxIncludedAmount;
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;

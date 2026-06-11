@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,6 +19,19 @@ import java.time.OffsetDateTime;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import org.hibernate.annotations.UuidGenerator;
 
 
 import java.util.*;
@@ -27,9 +41,16 @@ import jakarta.annotation.Generated;
  * An amount, usually of money, that represents the actual price paid by the Customer for this item or this order
  */
 
+@Entity
+@Table(name = "order_price")
 @Schema(name = "OrderPrice", description = "An amount, usually of money, that represents the actual price paid by the Customer for this item or this order")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-05T16:24:09.119988100+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class OrderPrice {
+
+  @Id
+  @UuidGenerator
+  @JsonIgnore
+  private String pkId;
 
   private @Nullable String description;
 
@@ -41,17 +62,53 @@ public class OrderPrice {
 
   private @Nullable String unitOfMeasure;
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "id",             column = @Column(name = "ba_id")),
+      @AttributeOverride(name = "href",           column = @Column(name = "ba_href")),
+      @AttributeOverride(name = "name",           column = @Column(name = "ba_name")),
+      @AttributeOverride(name = "ratingType",     column = @Column(name = "ba_rating_type")),
+      @AttributeOverride(name = "atBaseType",     column = @Column(name = "ba_at_base_type")),
+      @AttributeOverride(name = "atType",         column = @Column(name = "ba_at_type")),
+      @AttributeOverride(name = "atReferredType", column = @Column(name = "ba_at_referred_type"))
+  })
   private @Nullable BillingAccountRef billingAccount;
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "atBaseType",                         column = @Column(name = "price_at_base_type")),
+      @AttributeOverride(name = "atType",                             column = @Column(name = "price_at_type")),
+      @AttributeOverride(name = "dutyFreeAmount.unit",                column = @Column(name = "price_dfa_unit")),
+      @AttributeOverride(name = "dutyFreeAmount.value",               column = @Column(name = "price_dfa_value")),
+      @AttributeOverride(name = "dutyFreeAmount.atBaseType",          column = @Column(name = "price_dfa_at_base_type")),
+      @AttributeOverride(name = "dutyFreeAmount.atType",              column = @Column(name = "price_dfa_at_type")),
+      @AttributeOverride(name = "taxIncludedAmount.unit",             column = @Column(name = "price_tia_unit")),
+      @AttributeOverride(name = "taxIncludedAmount.value",            column = @Column(name = "price_tia_value")),
+      @AttributeOverride(name = "taxIncludedAmount.atBaseType",       column = @Column(name = "price_tia_at_base_type")),
+      @AttributeOverride(name = "taxIncludedAmount.atType",           column = @Column(name = "price_tia_at_type"))
+  })
   private @Nullable Price price;
 
   @Valid
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(name = "order_price_price_alteration", joinColumns = @JoinColumn(name = "order_price_id"))
   private List<@Valid PriceAlteration> priceAlteration = new ArrayList<>();
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "id",             column = @Column(name = "pop_id")),
+      @AttributeOverride(name = "href",           column = @Column(name = "pop_href")),
+      @AttributeOverride(name = "name",           column = @Column(name = "pop_name")),
+      @AttributeOverride(name = "atBaseType",     column = @Column(name = "pop_at_base_type")),
+      @AttributeOverride(name = "atSchemaLocation", column = @Column(name = "pop_at_schema_location")),
+      @AttributeOverride(name = "atType",         column = @Column(name = "pop_at_type")),
+      @AttributeOverride(name = "atReferredType", column = @Column(name = "pop_at_referred_type"))
+  })
   private @Nullable ProductOfferingPriceRef productOfferingPrice;
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;
@@ -65,7 +122,7 @@ public class OrderPrice {
    * A narrative that explains in detail the semantics of this order item price.
    * @return description
    */
-  
+
   @Schema(name = "description", description = "A narrative that explains in detail the semantics of this order item price.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("description")
   public @Nullable String getDescription() {
@@ -86,7 +143,7 @@ public class OrderPrice {
    * A short descriptive name such as \"Subscription price\".
    * @return name
    */
-  
+
   @Schema(name = "name", description = "A short descriptive name such as \"Subscription price\".", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("name")
   public @Nullable String getName() {
@@ -107,7 +164,7 @@ public class OrderPrice {
    * A category that describes the price, such as recurring, discount, allowance, penalty, and so forth
    * @return priceType
    */
-  
+
   @Schema(name = "priceType", description = "A category that describes the price, such as recurring, discount, allowance, penalty, and so forth", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("priceType")
   public @Nullable String getPriceType() {
@@ -128,7 +185,7 @@ public class OrderPrice {
    * Could be month, week...
    * @return recurringChargePeriod
    */
-  
+
   @Schema(name = "recurringChargePeriod", description = "Could be month, week...", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("recurringChargePeriod")
   public @Nullable String getRecurringChargePeriod() {
@@ -149,7 +206,7 @@ public class OrderPrice {
    * Could be minutes, GB...
    * @return unitOfMeasure
    */
-  
+
   @Schema(name = "unitOfMeasure", description = "Could be minutes, GB...", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("unitOfMeasure")
   public @Nullable String getUnitOfMeasure() {
@@ -170,7 +227,7 @@ public class OrderPrice {
    * Get billingAccount
    * @return billingAccount
    */
-  @Valid 
+  @Valid
   @Schema(name = "billingAccount", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("billingAccount")
   public @Nullable BillingAccountRef getBillingAccount() {
@@ -191,7 +248,7 @@ public class OrderPrice {
    * Get price
    * @return price
    */
-  @Valid 
+  @Valid
   @Schema(name = "price", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("price")
   public @Nullable Price getPrice() {
@@ -220,7 +277,7 @@ public class OrderPrice {
    * a strucuture used to describe a price alteration
    * @return priceAlteration
    */
-  @Valid 
+  @Valid
   @Schema(name = "priceAlteration", description = "a strucuture used to describe a price alteration", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("priceAlteration")
   public List<@Valid PriceAlteration> getPriceAlteration() {
@@ -241,7 +298,7 @@ public class OrderPrice {
    * Get productOfferingPrice
    * @return productOfferingPrice
    */
-  @Valid 
+  @Valid
   @Schema(name = "productOfferingPrice", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("productOfferingPrice")
   public @Nullable ProductOfferingPriceRef getProductOfferingPrice() {
@@ -262,7 +319,7 @@ public class OrderPrice {
    * When sub-classing, this defines the super-class
    * @return atBaseType
    */
-  
+
   @Schema(name = "@baseType", description = "When sub-classing, this defines the super-class", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("@baseType")
   public @Nullable String getAtBaseType() {
@@ -283,7 +340,7 @@ public class OrderPrice {
    * A URI to a JSON-Schema file that defines additional attributes and relationships
    * @return atSchemaLocation
    */
-  @Valid 
+  @Valid
   @Schema(name = "@schemaLocation", description = "A URI to a JSON-Schema file that defines additional attributes and relationships", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("@schemaLocation")
   public @Nullable URI getAtSchemaLocation() {
@@ -304,7 +361,7 @@ public class OrderPrice {
    * When sub-classing, this defines the sub-class entity name
    * @return atType
    */
-  
+
   @Schema(name = "@type", description = "When sub-classing, this defines the sub-class entity name", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("@type")
   public @Nullable String getAtType() {
@@ -372,4 +429,3 @@ public class OrderPrice {
     return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
-

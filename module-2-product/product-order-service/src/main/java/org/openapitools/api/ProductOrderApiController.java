@@ -1,10 +1,14 @@
 package org.openapitools.api;
 
+import com.jio.productorder.client.CatalogValidationClient;
+import com.jio.productorder.client.CustomerValidationClient;
+import com.jio.productorder.client.InventoryProvisioningClient;
 import org.openapitools.model.Error;
 import org.openapitools.model.ProductOrder;
 import org.openapitools.model.ProductOrderCreate;
 import org.openapitools.model.ProductOrderStateType;
 import org.openapitools.model.ProductOrderUpdate;
+import org.openapitools.model.RelatedParty;
 import org.openapitools.repository.ProductOrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.lang.Nullable;
 
 import jakarta.validation.Valid;
@@ -31,11 +36,21 @@ public class ProductOrderApiController implements ProductOrderApi {
 
     private final NativeWebRequest request;
     private final ProductOrderRepository repository;
+    private final CustomerValidationClient customerValidationClient;
+    private final CatalogValidationClient catalogValidationClient;
+    private final InventoryProvisioningClient inventoryProvisioningClient;
 
     @Autowired
-    public ProductOrderApiController(NativeWebRequest request, ProductOrderRepository repository) {
+    public ProductOrderApiController(NativeWebRequest request,
+                                     ProductOrderRepository repository,
+                                     CustomerValidationClient customerValidationClient,
+                                     CatalogValidationClient catalogValidationClient,
+                                     InventoryProvisioningClient inventoryProvisioningClient) {
         this.request = request;
         this.repository = repository;
+        this.customerValidationClient = customerValidationClient;
+        this.catalogValidationClient = catalogValidationClient;
+        this.inventoryProvisioningClient = inventoryProvisioningClient;
     }
 
     @Override
@@ -46,6 +61,38 @@ public class ProductOrderApiController implements ProductOrderApi {
     @Override
     public ResponseEntity<ProductOrder> createProductOrder(
             @Valid @RequestBody ProductOrderCreate productOrder) {
+
+        // Wire 5a: validate that the customer in relatedParty exists in TMF629
+        if (productOrder.getRelatedParty() != null) {
+            for (RelatedParty rp : productOrder.getRelatedParty()) {
+                boolean isCustomer = "customer".equalsIgnoreCase(rp.getRole())
+                    || "Customer".equals(rp.getAtReferredType());
+                if (isCustomer) {
+                    if (!customerValidationClient.customerExists(rp.getId())) {
+                        throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                            "Customer '" + rp.getId() + "' in relatedParty does not exist in " +
+                            "Customer Management (TMF629). " +
+                            "Create the Customer first at POST /tmf-api/customerManagement/v4/customer");
+                    }
+                }
+            }
+        }
+
+        // Wire A: validate every productOffering referenced in order items exists in TMF620
+        if (productOrder.getProductOrderItem() != null) {
+            for (var item : productOrder.getProductOrderItem()) {
+                if (item.getProductOffering() != null && item.getProductOffering().getId() != null) {
+                    String offeringId = item.getProductOffering().getId();
+                    if (!catalogValidationClient.offeringExists(offeringId)) {
+                        throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                            "productOffering '" + offeringId + "' in order item '" + item.getId() +
+                            "' does not exist in Product Catalog (TMF620). " +
+                            "Create the offering first at POST /tmf-api/productCatalogManagement/v4/productOffering");
+                    }
+                }
+            }
+        }
+
         ProductOrder order = new ProductOrder(productOrder.getProductOrderItem());
         order.setCancellationDate(productOrder.getCancellationDate());
         order.setCancellationReason(productOrder.getCancellationReason());
@@ -97,6 +144,10 @@ public class ProductOrderApiController implements ProductOrderApi {
             @PathVariable("id") String id,
             @Valid @RequestBody org.openapitools.model.ProductOrderUpdate productOrder) {
         return repository.findById(id).map(existing -> {
+
+            // Capture the state before patching so we can detect a COMPLETED transition
+            ProductOrderStateType stateBefore = existing.getState();
+
             if (productOrder.getCancellationDate() != null)       existing.setCancellationDate(productOrder.getCancellationDate());
             if (productOrder.getCancellationReason() != null)     existing.setCancellationReason(productOrder.getCancellationReason());
             if (productOrder.getCategory() != null)               existing.setCategory(productOrder.getCategory());
@@ -120,7 +171,23 @@ public class ProductOrderApiController implements ProductOrderApi {
             if (!productOrder.getProductOrderItem().isEmpty())    existing.setProductOrderItem(productOrder.getProductOrderItem());
             if (!productOrder.getQuote().isEmpty())               existing.setQuote(productOrder.getQuote());
             if (!productOrder.getRelatedParty().isEmpty())        existing.setRelatedParty(productOrder.getRelatedParty());
-            return ResponseEntity.ok(repository.save(existing));
+
+            // Auto-set completionDate when state → COMPLETED
+            if (existing.getState() == ProductOrderStateType.COMPLETED
+                    && existing.getCompletionDate() == null) {
+                existing.setCompletionDate(OffsetDateTime.now());
+            }
+
+            ProductOrder saved = repository.save(existing);
+
+            // Wire 5b: when order transitions to COMPLETED, auto-provision inventory in TMF637
+            boolean justCompleted = existing.getState() == ProductOrderStateType.COMPLETED
+                && stateBefore != ProductOrderStateType.COMPLETED;
+            if (justCompleted) {
+                inventoryProvisioningClient.provisionInventory(saved);
+            }
+
+            return ResponseEntity.ok(saved);
         }).orElse(ResponseEntity.notFound().build());
     }
 

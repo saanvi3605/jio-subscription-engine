@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonValue;
 import java.net.URI;
 import java.util.ArrayList;
@@ -28,6 +29,23 @@ import java.time.OffsetDateTime;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import org.hibernate.annotations.UuidGenerator;
 
 
 import java.util.*;
@@ -37,53 +55,130 @@ import jakarta.annotation.Generated;
  * An identified part of the order. A product order is decomposed into one or more order items.
  */
 
+@Entity
+@Table(name = "product_order_item")
 @Schema(name = "ProductOrderItem", description = "An identified part of the order. A product order is decomposed into one or more order items.")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-05T16:24:09.119988100+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class ProductOrderItem {
+
+  @Id
+  @UuidGenerator
+  @JsonIgnore
+  private String pkId;
 
   private String id;
 
   private @Nullable Integer quantity;
 
+  @Enumerated(EnumType.STRING)
   private OrderItemActionType action;
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "id",             column = @Column(name = "appt_id")),
+      @AttributeOverride(name = "href",           column = @Column(name = "appt_href")),
+      @AttributeOverride(name = "description",    column = @Column(name = "appt_description")),
+      @AttributeOverride(name = "atBaseType",     column = @Column(name = "appt_at_base_type")),
+      @AttributeOverride(name = "atType",         column = @Column(name = "appt_at_type")),
+      @AttributeOverride(name = "atReferredType", column = @Column(name = "appt_at_referred_type"))
+  })
   private @Nullable AppointmentRef appointment;
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "id",             column = @Column(name = "ba_id")),
+      @AttributeOverride(name = "href",           column = @Column(name = "ba_href")),
+      @AttributeOverride(name = "name",           column = @Column(name = "ba_name")),
+      @AttributeOverride(name = "ratingType",     column = @Column(name = "ba_rating_type")),
+      @AttributeOverride(name = "atBaseType",     column = @Column(name = "ba_at_base_type")),
+      @AttributeOverride(name = "atType",         column = @Column(name = "ba_at_type")),
+      @AttributeOverride(name = "atReferredType", column = @Column(name = "ba_at_referred_type"))
+  })
   private @Nullable BillingAccountRef billingAccount;
 
   @Valid
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @JoinColumn(name = "item_price_id")
   private List<@Valid OrderPrice> itemPrice = new ArrayList<>();
 
   @Valid
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(name = "product_order_item_term", joinColumns = @JoinColumn(name = "order_item_id"))
   private List<@Valid OrderTerm> itemTerm = new ArrayList<>();
 
   @Valid
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @JoinColumn(name = "item_total_price_id")
   private List<@Valid OrderPrice> itemTotalPrice = new ArrayList<>();
 
   @Valid
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(name = "product_order_item_payment", joinColumns = @JoinColumn(name = "order_item_id"))
   private List<@Valid PaymentRef> payment = new ArrayList<>();
 
+  @Transient
   private @Nullable ProductRefOrValue product;
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "id",             column = @Column(name = "po_id")),
+      @AttributeOverride(name = "href",           column = @Column(name = "po_href")),
+      @AttributeOverride(name = "name",           column = @Column(name = "po_name")),
+      @AttributeOverride(name = "atBaseType",     column = @Column(name = "po_at_base_type")),
+      @AttributeOverride(name = "atSchemaLocation", column = @Column(name = "po_at_schema_location")),
+      @AttributeOverride(name = "atType",         column = @Column(name = "po_at_type")),
+      @AttributeOverride(name = "atReferredType", column = @Column(name = "po_at_referred_type"))
+  })
   private @Nullable ProductOfferingRef productOffering;
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "id",                                    column = @Column(name = "poqi_id")),
+      @AttributeOverride(name = "productOfferingQualificationHref",      column = @Column(name = "poqi_poq_href")),
+      @AttributeOverride(name = "productOfferingQualificationId",        column = @Column(name = "poqi_poq_id")),
+      @AttributeOverride(name = "productOfferingQualificationName",      column = @Column(name = "poqi_poq_name")),
+      @AttributeOverride(name = "atBaseType",                            column = @Column(name = "poqi_at_base_type")),
+      @AttributeOverride(name = "atType",                                column = @Column(name = "poqi_at_type")),
+      @AttributeOverride(name = "atReferredType",                        column = @Column(name = "poqi_at_referred_type"))
+  })
   private @Nullable ProductOfferingQualificationItemRef productOfferingQualificationItem;
 
   @Valid
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @JoinColumn(name = "parent_item_id")
   private List<@Valid ProductOrderItem> productOrderItem = new ArrayList<>();
 
   @Valid
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(name = "product_order_item_relationship", joinColumns = @JoinColumn(name = "order_item_id"))
   private List<@Valid OrderItemRelationship> productOrderItemRelationship = new ArrayList<>();
 
   @Valid
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(name = "product_order_item_qualification", joinColumns = @JoinColumn(name = "order_item_id"))
   private List<@Valid ProductOfferingQualificationRef> qualification = new ArrayList<>();
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "id",             column = @Column(name = "qi_id")),
+      @AttributeOverride(name = "href",           column = @Column(name = "qi_href")),
+      @AttributeOverride(name = "name",           column = @Column(name = "qi_name")),
+      @AttributeOverride(name = "quoteHref",      column = @Column(name = "qi_quote_href")),
+      @AttributeOverride(name = "quoteId",        column = @Column(name = "qi_quote_id")),
+      @AttributeOverride(name = "quoteName",      column = @Column(name = "qi_quote_name")),
+      @AttributeOverride(name = "atBaseType",     column = @Column(name = "qi_at_base_type")),
+      @AttributeOverride(name = "atSchemaLocation", column = @Column(name = "qi_at_schema_location")),
+      @AttributeOverride(name = "atType",         column = @Column(name = "qi_at_type")),
+      @AttributeOverride(name = "atReferredType", column = @Column(name = "qi_at_referred_type"))
+  })
   private @Nullable QuoteItemRef quoteItem;
 
+  @Enumerated(EnumType.STRING)
   private @Nullable ProductOrderItemStateType state;
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;
@@ -109,7 +204,7 @@ public class ProductOrderItem {
    * Identifier of the line item (generally it is a sequence number 01, 02, 03, ...)
    * @return id
    */
-  @NotNull 
+  @NotNull
   @Schema(name = "id", description = "Identifier of the line item (generally it is a sequence number 01, 02, 03, ...)", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("id")
   public String getId() {
@@ -130,7 +225,7 @@ public class ProductOrderItem {
    * Quantity ordered
    * @return quantity
    */
-  
+
   @Schema(name = "quantity", description = "Quantity ordered", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("quantity")
   public @Nullable Integer getQuantity() {
@@ -151,7 +246,7 @@ public class ProductOrderItem {
    * Get action
    * @return action
    */
-  @NotNull @Valid 
+  @NotNull @Valid
   @Schema(name = "action", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("action")
   public OrderItemActionType getAction() {
@@ -172,7 +267,7 @@ public class ProductOrderItem {
    * Get appointment
    * @return appointment
    */
-  @Valid 
+  @Valid
   @Schema(name = "appointment", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("appointment")
   public @Nullable AppointmentRef getAppointment() {
@@ -193,7 +288,7 @@ public class ProductOrderItem {
    * Get billingAccount
    * @return billingAccount
    */
-  @Valid 
+  @Valid
   @Schema(name = "billingAccount", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("billingAccount")
   public @Nullable BillingAccountRef getBillingAccount() {
@@ -222,7 +317,7 @@ public class ProductOrderItem {
    * Get itemPrice
    * @return itemPrice
    */
-  @Valid 
+  @Valid
   @Schema(name = "itemPrice", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("itemPrice")
   public List<@Valid OrderPrice> getItemPrice() {
@@ -251,7 +346,7 @@ public class ProductOrderItem {
    * Get itemTerm
    * @return itemTerm
    */
-  @Valid 
+  @Valid
   @Schema(name = "itemTerm", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("itemTerm")
   public List<@Valid OrderTerm> getItemTerm() {
@@ -280,7 +375,7 @@ public class ProductOrderItem {
    * Get itemTotalPrice
    * @return itemTotalPrice
    */
-  @Valid 
+  @Valid
   @Schema(name = "itemTotalPrice", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("itemTotalPrice")
   public List<@Valid OrderPrice> getItemTotalPrice() {
@@ -309,7 +404,7 @@ public class ProductOrderItem {
    * Get payment
    * @return payment
    */
-  @Valid 
+  @Valid
   @Schema(name = "payment", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("payment")
   public List<@Valid PaymentRef> getPayment() {
@@ -330,7 +425,7 @@ public class ProductOrderItem {
    * Get product
    * @return product
    */
-  @Valid 
+  @Valid
   @Schema(name = "product", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("product")
   public @Nullable ProductRefOrValue getProduct() {
@@ -351,7 +446,7 @@ public class ProductOrderItem {
    * Get productOffering
    * @return productOffering
    */
-  @Valid 
+  @Valid
   @Schema(name = "productOffering", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("productOffering")
   public @Nullable ProductOfferingRef getProductOffering() {
@@ -372,7 +467,7 @@ public class ProductOrderItem {
    * Get productOfferingQualificationItem
    * @return productOfferingQualificationItem
    */
-  @Valid 
+  @Valid
   @Schema(name = "productOfferingQualificationItem", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("productOfferingQualificationItem")
   public @Nullable ProductOfferingQualificationItemRef getProductOfferingQualificationItem() {
@@ -401,7 +496,7 @@ public class ProductOrderItem {
    * Get productOrderItem
    * @return productOrderItem
    */
-  @Valid 
+  @Valid
   @Schema(name = "productOrderItem", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("productOrderItem")
   public List<@Valid ProductOrderItem> getProductOrderItem() {
@@ -430,7 +525,7 @@ public class ProductOrderItem {
    * Get productOrderItemRelationship
    * @return productOrderItemRelationship
    */
-  @Valid 
+  @Valid
   @Schema(name = "productOrderItemRelationship", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("productOrderItemRelationship")
   public List<@Valid OrderItemRelationship> getProductOrderItemRelationship() {
@@ -459,7 +554,7 @@ public class ProductOrderItem {
    * Get qualification
    * @return qualification
    */
-  @Valid 
+  @Valid
   @Schema(name = "qualification", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("qualification")
   public List<@Valid ProductOfferingQualificationRef> getQualification() {
@@ -480,7 +575,7 @@ public class ProductOrderItem {
    * Get quoteItem
    * @return quoteItem
    */
-  @Valid 
+  @Valid
   @Schema(name = "quoteItem", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("quoteItem")
   public @Nullable QuoteItemRef getQuoteItem() {
@@ -501,7 +596,7 @@ public class ProductOrderItem {
    * Get state
    * @return state
    */
-  @Valid 
+  @Valid
   @Schema(name = "state", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("state")
   public @Nullable ProductOrderItemStateType getState() {
@@ -522,7 +617,7 @@ public class ProductOrderItem {
    * When sub-classing, this defines the super-class
    * @return atBaseType
    */
-  
+
   @Schema(name = "@baseType", description = "When sub-classing, this defines the super-class", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("@baseType")
   public @Nullable String getAtBaseType() {
@@ -543,7 +638,7 @@ public class ProductOrderItem {
    * A URI to a JSON-Schema file that defines additional attributes and relationships
    * @return atSchemaLocation
    */
-  @Valid 
+  @Valid
   @Schema(name = "@schemaLocation", description = "A URI to a JSON-Schema file that defines additional attributes and relationships", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("@schemaLocation")
   public @Nullable URI getAtSchemaLocation() {
@@ -564,7 +659,7 @@ public class ProductOrderItem {
    * When sub-classing, this defines the sub-class entity name
    * @return atType
    */
-  
+
   @Schema(name = "@type", description = "When sub-classing, this defines the sub-class entity name", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("@type")
   public @Nullable String getAtType() {
@@ -648,4 +743,3 @@ public class ProductOrderItem {
     return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
-

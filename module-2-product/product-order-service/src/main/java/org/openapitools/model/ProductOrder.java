@@ -28,16 +28,23 @@ import java.time.OffsetDateTime;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
-import org.hibernate.type.SqlTypes;
 
 import java.util.*;
 import jakarta.annotation.Generated;
@@ -89,52 +96,60 @@ public class ProductOrder {
   private @Nullable OffsetDateTime requestedStartDate;
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(name = "product_order_agreement", joinColumns = @JoinColumn(name = "product_order_id"))
   private List<@Valid AgreementRef> agreement = new ArrayList<>();
 
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "id",             column = @Column(name = "billing_account_id")),
+      @AttributeOverride(name = "href",           column = @Column(name = "billing_account_href")),
+      @AttributeOverride(name = "name",           column = @Column(name = "billing_account_name")),
+      @AttributeOverride(name = "ratingType",     column = @Column(name = "billing_account_rating_type")),
+      @AttributeOverride(name = "atBaseType",     column = @Column(name = "billing_account_at_base_type")),
+      @AttributeOverride(name = "atType",         column = @Column(name = "billing_account_at_type")),
+      @AttributeOverride(name = "atReferredType", column = @Column(name = "billing_account_at_referred_type"))
+  })
   private @Nullable BillingAccountRef billingAccount;
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(name = "product_order_channel", joinColumns = @JoinColumn(name = "product_order_id"))
   private List<@Valid RelatedChannel> channel = new ArrayList<>();
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(name = "product_order_note", joinColumns = @JoinColumn(name = "product_order_id"))
   private List<@Valid Note> note = new ArrayList<>();
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @JoinColumn(name = "order_total_price_id")
   private List<@Valid OrderPrice> orderTotalPrice = new ArrayList<>();
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(name = "product_order_payment", joinColumns = @JoinColumn(name = "product_order_id"))
   private List<@Valid PaymentRef> payment = new ArrayList<>();
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(name = "product_order_poq", joinColumns = @JoinColumn(name = "product_order_id"))
   private List<@Valid ProductOfferingQualificationRef> productOfferingQualification = new ArrayList<>();
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @JoinColumn(name = "product_order_id")
   private List<@Valid ProductOrderItem> productOrderItem = new ArrayList<>();
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(name = "product_order_quote", joinColumns = @JoinColumn(name = "product_order_id"))
   private List<@Valid QuoteRef> quote = new ArrayList<>();
 
   @Valid
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "LONGTEXT")
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(name = "product_order_related_party", joinColumns = @JoinColumn(name = "product_order_id"))
   private List<@Valid RelatedParty> relatedParty = new ArrayList<>();
 
   @Enumerated(EnumType.STRING)

@@ -12,6 +12,12 @@ import java.time.OffsetDateTime;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Transient;
 
 
 import java.util.*;
@@ -21,6 +27,7 @@ import jakarta.annotation.Generated;
  * Description of a productTerm linked to this orderItem. This represent a commitment with a duration
  */
 
+@Embeddable
 @Schema(name = "OrderTerm", description = "Description of a productTerm linked to this orderItem. This represent a commitment with a duration")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-05T16:24:09.119988100+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class OrderTerm {
@@ -29,10 +36,18 @@ public class OrderTerm {
 
   private @Nullable String name;
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "amount",     column = @Column(name = "duration_amount")),
+      @AttributeOverride(name = "units",      column = @Column(name = "duration_units")),
+      @AttributeOverride(name = "atBaseType", column = @Column(name = "duration_at_base_type")),
+      @AttributeOverride(name = "atType",     column = @Column(name = "duration_at_type"))
+  })
   private @Nullable Quantity duration;
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;

@@ -11,6 +11,8 @@ import java.time.OffsetDateTime;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Transient;
 
 
 import java.util.*;
@@ -20,6 +22,7 @@ import jakarta.annotation.Generated;
  * It&#39;s a productOfferingQualification item that has been executed previously.
  */
 
+@Embeddable
 @Schema(name = "ProductOfferingQualificationItemRef", description = "It's a productOfferingQualification item that has been executed previously.")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-05T16:24:09.119988100+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class ProductOfferingQualificationItemRef {
@@ -34,6 +37,7 @@ public class ProductOfferingQualificationItemRef {
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;

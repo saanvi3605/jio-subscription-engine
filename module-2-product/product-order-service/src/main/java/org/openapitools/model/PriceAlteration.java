@@ -13,6 +13,12 @@ import java.time.OffsetDateTime;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Transient;
 
 
 import java.util.*;
@@ -22,6 +28,7 @@ import jakarta.annotation.Generated;
  * Is an amount, usually of money, that modifies the price charged for an order item.
  */
 
+@Embeddable
 @Schema(name = "PriceAlteration", description = "Is an amount, usually of money, that modifies the price charged for an order item.")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-05T16:24:09.119988100+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class PriceAlteration {
@@ -40,12 +47,38 @@ public class PriceAlteration {
 
   private @Nullable String unitOfMeasure;
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "percentage",                         column = @Column(name = "pa_price_percentage")),
+      @AttributeOverride(name = "taxRate",                            column = @Column(name = "pa_price_tax_rate")),
+      @AttributeOverride(name = "atBaseType",                         column = @Column(name = "pa_price_at_base_type")),
+      @AttributeOverride(name = "atType",                             column = @Column(name = "pa_price_at_type")),
+      @AttributeOverride(name = "dutyFreeAmount.unit",                column = @Column(name = "pa_price_dfa_unit")),
+      @AttributeOverride(name = "dutyFreeAmount.value",               column = @Column(name = "pa_price_dfa_value")),
+      @AttributeOverride(name = "dutyFreeAmount.atBaseType",          column = @Column(name = "pa_price_dfa_at_base_type")),
+      @AttributeOverride(name = "dutyFreeAmount.atType",              column = @Column(name = "pa_price_dfa_at_type")),
+      @AttributeOverride(name = "taxIncludedAmount.unit",             column = @Column(name = "pa_price_tia_unit")),
+      @AttributeOverride(name = "taxIncludedAmount.value",            column = @Column(name = "pa_price_tia_value")),
+      @AttributeOverride(name = "taxIncludedAmount.atBaseType",       column = @Column(name = "pa_price_tia_at_base_type")),
+      @AttributeOverride(name = "taxIncludedAmount.atType",           column = @Column(name = "pa_price_tia_at_type"))
+  })
   private Price price;
 
+  @Embedded
+  @AttributeOverrides({
+      @AttributeOverride(name = "id",             column = @Column(name = "pa_pop_id")),
+      @AttributeOverride(name = "href",           column = @Column(name = "pa_pop_href")),
+      @AttributeOverride(name = "name",           column = @Column(name = "pa_pop_name")),
+      @AttributeOverride(name = "atBaseType",     column = @Column(name = "pa_pop_at_base_type")),
+      @AttributeOverride(name = "atSchemaLocation", column = @Column(name = "pa_pop_at_schema_location")),
+      @AttributeOverride(name = "atType",         column = @Column(name = "pa_pop_at_type")),
+      @AttributeOverride(name = "atReferredType", column = @Column(name = "pa_pop_at_referred_type"))
+  })
   private @Nullable ProductOfferingPriceRef productOfferingPrice;
 
   private @Nullable String atBaseType;
 
+  @Transient
   private @Nullable URI atSchemaLocation;
 
   private @Nullable String atType;

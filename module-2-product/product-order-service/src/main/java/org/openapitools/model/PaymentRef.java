@@ -10,6 +10,7 @@ import java.time.OffsetDateTime;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Embeddable;
 
 
 import java.util.*;
@@ -19,6 +20,7 @@ import jakarta.annotation.Generated;
  * If an immediate payment has been done at the product order submission, the payment information are captured and stored (as a reference) in the order.
  */
 
+@Embeddable
 @Schema(name = "PaymentRef", description = "If an immediate payment has been done at the product order submission, the payment information are captured and stored (as a reference) in the order.")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-05T16:24:09.119988100+05:30[Asia/Calcutta]", comments = "Generator version: 7.22.0")
 public class PaymentRef {
