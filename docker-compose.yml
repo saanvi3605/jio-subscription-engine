@@ -1,0 +1,212 @@
+version: '3.8'
+
+services:
+
+  # ── Database ────────────────────────────────────────────────────────────────
+  mariadb:
+    image: mariadb:11
+    container_name: jio-mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: Saanvi@999
+      MYSQL_DATABASE: jio_customer
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-uroot", "-pSaanvi@999"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ── Module 1: Customer ──────────────────────────────────────────────────────
+  party-management-service:
+    build:
+      context: .
+      dockerfile: module-1-customer/party-management-service/Dockerfile
+    container_name: jio-party
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/jio_party?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Saanvi@999
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  customer-management-service:
+    build:
+      context: .
+      dockerfile: module-1-customer/customer-management-service/Dockerfile
+    container_name: jio-customer
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/jio_customer?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Saanvi@999
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  # ── Module 2: Product ───────────────────────────────────────────────────────
+  product-catalog-service:
+    build:
+      context: .
+      dockerfile: module-2-product/product-catalog-service/Dockerfile
+    container_name: jio-product-catalog
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/jio_product_catalog?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Saanvi@999
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  product-inventory-service:
+    build:
+      context: .
+      dockerfile: module-2-product/product-inventory-service/Dockerfile
+    container_name: jio-product-inventory
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/jio_product_inventory?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Saanvi@999
+      SERVICES_TMF629_URL: http://customer-management-service:8083
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      customer-management-service:
+        condition: service_started
+
+  product-order-service:
+    build:
+      context: .
+      dockerfile: module-2-product/product-order-service/Dockerfile
+    container_name: jio-product-order
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/jio_product_order?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Saanvi@999
+      SERVICES_TMF629_URL: http://customer-management-service:8083
+      SERVICES_TMF637_URL: http://product-inventory-service:8084
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      customer-management-service:
+        condition: service_started
+      product-inventory-service:
+        condition: service_started
+
+  # ── Module 3: Usage ─────────────────────────────────────────────────────────
+  usage-management-service:
+    build:
+      context: .
+      dockerfile: module-3-usage/usage-management-service/Dockerfile
+    container_name: jio-usage
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/jio_usage?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Saanvi@999
+      SERVICES_TMF629_URL: http://customer-management-service:8083
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      customer-management-service:
+        condition: service_started
+
+  # ── Module 4: Payments ──────────────────────────────────────────────────────
+  payment-method-service:
+    build:
+      context: .
+      dockerfile: module-4-payments/payment-method-service/Dockerfile
+    container_name: jio-payment-method
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/jio_payment_method?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Saanvi@999
+      SERVICES_TMF629_URL: http://customer-management-service:8083
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      customer-management-service:
+        condition: service_started
+
+  payment-management-service:
+    build:
+      context: .
+      dockerfile: module-4-payments/payment-management-service/Dockerfile
+    container_name: jio-payment
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/jio_payment?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Saanvi@999
+      SERVICES_TMF629_URL: http://customer-management-service:8083
+      SERVICES_TMF637_URL: http://product-inventory-service:8084
+      SERVICES_TMF671_URL: http://payment-method-service:8087
+      SERVICES_TMF681_URL: http://communication-management-service:8088
+      RAZORPAY_KEY_ID: rzp_test_T1njn3v21DwOYh
+      RAZORPAY_KEY_SECRET: AVQ9eW6LWXizXTVI5NqButaJ
+      RAZORPAY_WEBHOOK_SECRET: jiowebhook123
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      customer-management-service:
+        condition: service_started
+      product-inventory-service:
+        condition: service_started
+      payment-method-service:
+        condition: service_started
+
+  # ── Module 5: Orchestration ─────────────────────────────────────────────────
+  communication-management-service:
+    build:
+      context: .
+      dockerfile: module-5-orchestration/communication-management-service/Dockerfile
+    container_name: jio-communication
+    ports:
+      - "8088:8088"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/jio_communication?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Saanvi@999
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  process-flow-service:
+    build:
+      context: .
+      dockerfile: module-5-orchestration/process-flow-service/Dockerfile
+    container_name: jio-process-flow
+    ports:
+      - "8089:8089"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/jio_process_flow?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Saanvi@999
+      SERVICES_TMF629_URL: http://customer-management-service:8083
+      SERVICES_TMF622_URL: http://product-order-service:8080
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      customer-management-service:
+        condition: service_started
+
+volumes:
+  mariadb_data:

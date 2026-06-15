@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- ── Inherits Spring Boot dependency management ── -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.13</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.jio</groupId>
+    <artifactId>jio-subscription-engine</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+    <name>jio-subscription-engine</name>
+    <description>Parent POM — Jio Subscription Engine (TMF Open API microservices)</description>
+
+    <properties>
+        <java.version>17</java.version>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <springdoc.version>2.6.0</springdoc.version>
+    </properties>
+
+    <!-- ── All microservice modules ── -->
+    <modules>
+        <module>module-1-customer/party-management-service</module>
+        <module>module-1-customer/customer-management-service</module>
+        <module>module-2-product/product-catalog-service</module>
+        <module>module-2-product/product-inventory-service</module>
+        <module>module-2-product/product-order-service</module>
+        <module>module-3-usage/usage-management-service</module>
+        <module>module-4-payments/payment-method-service</module>
+        <module>module-4-payments/payment-management-service</module>
+        <module>module-5-orchestration/communication-management-service</module>
+        <module>module-5-orchestration/process-flow-service</module>
+    </modules>
+
+    <!-- ── Shared dependency versions ── -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.razorpay</groupId>
+                <artifactId>razorpay-java</artifactId>
+                <version>1.4.6</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>
