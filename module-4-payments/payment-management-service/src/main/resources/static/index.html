@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Jio Subscription Portal</title>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<style>
+:root {
+  --blue: #0B6CD4;
+  --dark: #063a7a;
+  --orange: #F57F20;
+  --light: #f0f6ff;
+  --green: #22c55e;
+  --red: #ef4444;
+  --gray: #64748b;
+  --border: #e2e8f0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f7fa; color: #1a1a2e; }
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, var(--blue), var(--dark));
+  color: white; padding: 16px 32px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+}
+.logo { font-size: 32px; font-weight: 900; color: var(--orange); letter-spacing: -1px; }
+.header-text div:first-child { font-size: 16px; font-weight: 700; }
+.header-text div:last-child { font-size: 12px; opacity: 0.7; margin-top: 2px; }
+
+/* Progress */
+.progress-wrap { background: white; padding: 20px 32px; border-bottom: 1px solid var(--border); }
+.steps { display: flex; justify-content: space-between; max-width: 860px; margin: 0 auto; position: relative; }
+.steps::before { content: ''; position: absolute; top: 19px; left: 24px; right: 24px; height: 2px; background: var(--border); z-index: 0; }
+.step { display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 1; }
+.step-dot {
+  width: 38px; height: 38px; border-radius: 50%; background: var(--border); color: #94a3b8;
+  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;
+  transition: all 0.3s; border: 3px solid white;
+}
+.step.active .step-dot { background: var(--blue); color: white; box-shadow: 0 0 0 4px rgba(11,108,212,0.2); }
+.step.done .step-dot { background: var(--green); color: white; }
+.step-lbl { font-size: 11px; color: #94a3b8; font-weight: 600; text-align: center; max-width: 72px; }
+.step.active .step-lbl { color: var(--blue); }
+.step.done .step-lbl { color: var(--green); }
+
+/* Layout */
+.main { max-width: 960px; margin: 28px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 290px; gap: 20px; }
+
+/* Card */
+.card { background: white; border-radius: 16px; padding: 26px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 0; }
+.card-title { font-size: 19px; font-weight: 800; margin-bottom: 4px; }
+.card-sub { font-size: 13px; color: var(--gray); margin-bottom: 22px; }
+
+/* Form */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.fg { margin-bottom: 15px; }
+label { display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.4px; }
+input, select {
+  width: 100%; padding: 10px 13px; border: 2px solid var(--border);
+  border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s; background: white;
+}
+input:focus, select:focus { border-color: var(--blue); }
+input[readonly] { background: #f8fafc; color: var(--gray); cursor: default; }
+
+/* Buttons */
+.btn { width: 100%; padding: 13px; border: none; border-radius: 11px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 6px; }
+.btn-blue { background: var(--blue); color: white; }
+.btn-blue:hover:not(:disabled) { background: var(--dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(11,108,212,0.3); }
+.btn-orange { background: var(--orange); color: white; }
+.btn-orange:hover:not(:disabled) { background: #d96f18; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245,127,32,0.3); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+/* Plan cards */
+.plans { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+.plan {
+  border: 2px solid var(--border); border-radius: 13px; padding: 16px 14px;
+  cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+}
+.plan:hover { border-color: var(--blue); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(11,108,212,0.12); }
+.plan.selected { border-color: var(--blue); background: var(--light); }
+.plan.selected::after { content: '✓'; position: absolute; top: 10px; right: 12px; color: var(--blue); font-weight: 900; font-size: 16px; }
+.plan-badge { font-size: 10px; font-weight: 700; background: var(--orange); color: white; border-radius: 20px; padding: 2px 8px; display: inline-block; margin-bottom: 8px; }
+.plan-name { font-weight: 800; font-size: 14px; margin-bottom: 4px; }
+.plan-price { font-size: 24px; font-weight: 900; color: var(--blue); }
+.plan-price sup { font-size: 14px; }
+.plan-price small { font-size: 12px; color: var(--gray); font-weight: 500; }
+.plan-perks { font-size: 11px; color: var(--gray); margin-top: 6px; line-height: 1.7; }
+
+/* PM tabs */
+.pm-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+.pm-tab { flex: 1; padding: 9px; border: 2px solid var(--border); border-radius: 9px; text-align: center; cursor: pointer; font-size: 13px; font-weight: 700; transition: all 0.2s; color: var(--gray); }
+.pm-tab.active { border-color: var(--blue); background: var(--light); color: var(--blue); }
+
+/* Summary box */
+.summary { background: var(--light); border-radius: 13px; padding: 18px; margin-bottom: 18px; }
+.summary-row { display: flex; justify-content: space-between; padding: 7px 0; font-size: 14px; border-bottom: 1px solid #d1e7ff; }
+.summary-row:last-child { border: none; font-size: 18px; font-weight: 900; padding-top: 12px; color: var(--blue); }
+.summary-row span:first-child { color: var(--gray); font-weight: 500; font-size: 13px; }
+
+/* Test hint */
+.hint { font-size: 12px; color: #854d0e; background: #fef9c3; border-radius: 9px; padding: 11px 13px; margin-bottom: 16px; line-height: 1.6; }
+code { background: #e5e7eb; padding: 1px 5px; border-radius: 4px; font-family: monospace; }
+
+/* Response box */
+.res-box { margin-top: 14px; border-radius: 10px; overflow: hidden; }
+.res-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; cursor: pointer; font-size: 12px; font-weight: 700; border-radius: 10px;
+  background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d;
+}
+.res-header.err { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+.res-body {
+  display: none; background: #1e1e2e; color: #cdd6f4; padding: 14px;
+  font-size: 11px; font-family: monospace; white-space: pre-wrap;
+  max-height: 220px; overflow-y: auto; border-radius: 0 0 10px 10px;
+}
+
+/* Sidebar */
+.sidebar { position: sticky; top: 20px; display: flex; flex-direction: column; gap: 16px; }
+.journey-row { padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+.journey-row:last-child { border: none; }
+.j-label { font-size: 10px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+.j-val { font-size: 12px; font-weight: 700; color: #1a1a2e; font-family: monospace; word-break: break-all; }
+.j-val.pending { color: #cbd5e1; font-style: italic; font-family: inherit; font-weight: 400; }
+
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; }
+.b-green { background: #dcfce7; color: #15803d; }
+.b-yellow { background: #fef9c3; color: #854d0e; }
+.b-red { background: #fee2e2; color: #dc2626; }
+
+/* Success */
+.success-wrap { text-align: center; padding: 32px 20px; }
+.success-icon { font-size: 72px; margin-bottom: 16px; display: block; }
+.svc-tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 20px 0; }
+.svc-tag { font-size: 12px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; padding: 5px 12px; border-radius: 20px; font-weight: 600; }
+
+.spin { display: inline-block; width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.7s linear infinite; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">jio</div>
+  <div class="header-text">
+    <div>Subscription Portal</div>
+    <div>TMF Open API Demo · Full Pipeline Test</div>
+  </div>
+</div>
+
+<!-- Progress -->
+<div class="progress-wrap">
+  <div class="steps">
+    <div class="step active" id="si-1"><div class="step-dot">1</div><div class="step-lbl">Register</div></div>
+    <div class="step" id="si-2"><div class="step-dot">2</div><div class="step-lbl">Account</div></div>
+    <div class="step" id="si-3"><div class="step-dot">3</div><div class="step-lbl">Pick Plan</div></div>
+    <div class="step" id="si-4"><div class="step-dot">4</div><div class="step-lbl">Pay Method</div></div>
+    <div class="step" id="si-5"><div class="step-dot">5</div><div class="step-lbl">Pay</div></div>
+    <div class="step" id="si-6"><div class="step-dot">✓</div><div class="step-lbl">Done</div></div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Steps Column -->
+  <div>
+
+    <!-- STEP 1: Register Customer -->
+    <div class="card" id="s1">
+      <div class="card-title">👤 Register as a Customer</div>
+      <div class="card-sub">Creates your profile in Customer Management — saved to <strong>jio_customer</strong> DB (TMF629)</div>
+      <div class="form-row">
+        <div class="fg">
+          <label>Full Name</label>
+          <input id="c-name" placeholder="e.g. Saanvi Sharma" />
+        </div>
+        <div class="fg">
+          <label>Mobile Number</label>
+          <input id="c-party" placeholder="e.g. 9876543210" />
+        </div>
+      </div>
+      <div class="fg">
+        <label>Status</label>
+        <select id="c-status">
+          <option value="prospect">Prospect (New)</option>
+          <option value="active">Active</option>
+        </select>
+      </div>
+      <button class="btn btn-blue" onclick="step1()">Register Customer →</button>
+      <div id="r1"></div>
+    </div>
+
+    <!-- STEP 2: Create Account -->
+    <div class="card hidden" id="s2">
+      <div class="card-title">🏦 Create Billing Account</div>
+      <div class="card-sub">Sets up your billing account — saved to <strong>jio_customer</strong> DB (TMF629)</div>
+      <div class="fg">
+        <label>Customer ID (auto-filled)</label>
+        <input id="a-cid" readonly />
+      </div>
+      <div class="form-row">
+        <div class="fg">
+          <label>Account Name</label>
+          <input id="a-name" placeholder="e.g. Saanvi's Postpaid Account" />
+        </div>
+        <div class="fg">
+          <label>Account Type</label>
+          <select id="a-type">
+            <option value="POSTPAID">Postpaid</option>
+            <option value="PREPAID">Prepaid</option>
+            <option value="BROADBAND">JioFiber Broadband</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-blue" onclick="step2()">Create Account →</button>
+      <div id="r2"></div>
+    </div>
+
+    <!-- STEP 3: Choose Plan -->
+    <div class="card hidden" id="s3">
+      <div class="card-title">📱 Choose a Subscription Plan</div>
+      <div class="card-sub">Select your plan — saved to <strong>jio_product_inventory</strong> DB (TMF637)</div>
+      <div class="plans">
+        <div class="plan" onclick="pickPlan(this,'Jio Prepaid Lite',199,'PREPAID')">
+          <div class="plan-name">Jio Prepaid Lite</div>
+          <div class="plan-price"><sup>₹</sup>199 <small>/mo</small></div>
+          <div class="plan-perks">📞 Unlimited calls<br>📶 1 GB/day data<br>✉️ 100 SMS/day</div>
+        </div>
+        <div class="plan" onclick="pickPlan(this,'Jio Postpaid Plus',499,'POSTPAID')">
+          <div class="plan-badge">POPULAR</div>
+          <div class="plan-name">Jio Postpaid Plus</div>
+          <div class="plan-price"><sup>₹</sup>499 <small>/mo</small></div>
+          <div class="plan-perks">📞 Unlimited calls<br>📶 3 GB/day data<br>🎬 Disney+ Hotstar</div>
+        </div>
+        <div class="plan" onclick="pickPlan(this,'Jio Postpaid Elite',999,'POSTPAID')">
+          <div class="plan-badge" style="background:#7c3aed;">PREMIUM</div>
+          <div class="plan-name">Jio Postpaid Elite</div>
+          <div class="plan-price"><sup>₹</sup>999 <small>/mo</small></div>
+          <div class="plan-perks">📞 Unlimited calls<br>📶 5 GB/day data<br>🎬 All OTT Platforms</div>
+        </div>
+        <div class="plan" onclick="pickPlan(this,'JioFiber Premium',1299,'BROADBAND')">
+          <div class="plan-name">JioFiber Premium</div>
+          <div class="plan-price"><sup>₹</sup>1299 <small>/mo</small></div>
+          <div class="plan-perks">🌐 100 Mbps speed<br>📶 Unlimited data<br>🎬 OTT + JioTV</div>
+        </div>
+      </div>
+      <button class="btn btn-blue" id="btn-plan" onclick="step3()" disabled>Select a Plan to Continue →</button>
+      <div id="r3"></div>
+    </div>
+
+    <!-- STEP 4: Payment Method -->
+    <div class="card hidden" id="s4">
+      <div class="card-title">💳 Add Payment Method</div>
+      <div class="card-sub">Register your payment instrument — saved to <strong>jio_payment_method</strong> DB (TMF671)</div>
+      <div class="pm-tabs">
+        <div class="pm-tab active" onclick="pmTab('UPI',this)">UPI</div>
+        <div class="pm-tab" onclick="pmTab('CREDIT_CARD',this)">Credit Card</div>
+        <div class="pm-tab" onclick="pmTab('DEBIT_CARD',this)">Debit Card</div>
+      </div>
+      <input type="hidden" id="pm-type" value="UPI" />
+
+      <div id="pm-upi">
+        <div class="fg">
+          <label>UPI ID</label>
+          <input id="pm-upi-id" placeholder="e.g. success@razorpay  ← use this for testing!" />
+        </div>
+      </div>
+
+      <div id="pm-card" class="hidden">
+        <div class="fg"><label>Cardholder Name</label><input id="pm-cname" placeholder="Name as on card" /></div>
+        <div class="form-row">
+          <div class="fg"><label>Last 4 Digits</label><input id="pm-last4" placeholder="4242" maxlength="4" /></div>
+          <div class="fg"><label>Brand</label>
+            <select id="pm-brand"><option>VISA</option><option>MASTERCARD</option><option>RUPAY</option></select>
+          </div>
+          <div class="fg"><label>Expiry Month</label><input id="pm-month" type="number" placeholder="12" min="1" max="12" /></div>
+          <div class="fg"><label>Expiry Year</label><input id="pm-year" type="number" placeholder="2029" /></div>
+        </div>
+      </div>
+
+      <button class="btn btn-blue" onclick="step4()">Save Payment Method →</button>
+      <div id="r4"></div>
+    </div>
+
+    <!-- STEP 5: Pay -->
+    <div class="card hidden" id="s5">
+      <div class="card-title">💰 Complete Payment</div>
+      <div class="card-sub">Initiates Razorpay order — saved to <strong>jio_payment</strong> DB (TMF676)</div>
+      <div class="summary">
+        <div class="summary-row"><span>Plan</span><strong id="sum-plan">-</strong></div>
+        <div class="summary-row"><span>Customer</span><strong id="sum-cust">-</strong></div>
+        <div class="summary-row"><span>Payment via</span><strong id="sum-pm">-</strong></div>
+        <div class="summary-row"><span>Total</span><span id="sum-amt">₹0</span></div>
+      </div>
+      <div class="hint">
+        🧪 <strong>Test Mode active.</strong> Use UPI ID <code>success@razorpay</code> in the popup,
+        or card <code>4111 1111 1111 1111</code> · any future expiry · any CVV · any name.
+      </div>
+      <button class="btn btn-orange" id="pay-btn" onclick="step5()">Pay with Razorpay →</button>
+      <div id="r5"></div>
+    </div>
+
+    <!-- STEP 6: Done -->
+    <div class="card hidden" id="s6">
+      <div class="success-wrap">
+        <span class="success-icon">🎉</span>
+        <h2 style="font-size:26px;font-weight:900;margin-bottom:8px;">Payment Successful!</h2>
+        <p style="color:var(--gray);margin-bottom:20px;">Your Jio subscription is now active and saved across all services.</p>
+        <div class="svc-tags">
+          <div class="svc-tag">✅ jio_customer updated (TMF629)</div>
+          <div class="svc-tag">✅ jio_product_inventory saved (TMF637)</div>
+          <div class="svc-tag">✅ jio_payment_method saved (TMF671)</div>
+          <div class="svc-tag">✅ jio_payment settled (TMF676)</div>
+          <div class="svc-tag">✅ SMS receipt fired (TMF681)</div>
+        </div>
+        <div id="pay-status" style="background:#f0fdf4;border-radius:12px;padding:16px;margin:20px 0;text-align:left;font-size:13px;line-height:2;">
+          Checking payment status...
+        </div>
+        <button class="btn btn-blue" onclick="location.reload()" style="max-width:260px;margin:0 auto;">
+          Start New Subscription
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="card">
+      <div style="font-size:15px;font-weight:800;margin-bottom:14px;">🗺️ Journey Tracker</div>
+      <div class="journey-row">
+        <div class="j-label">Customer ID · TMF629</div>
+        <div class="j-val pending" id="j-cid">not yet</div>
+      </div>
+      <div class="journey-row">
+        <div class="j-label">Account ID · TMF629</div>
+        <div class="j-val pending" id="j-aid">not yet</div>
+      </div>
+      <div class="journey-row">
+        <div class="j-label">Product ID · TMF637</div>
+        <div class="j-val pending" id="j-pid">not yet</div>
+      </div>
+      <div class="journey-row">
+        <div class="j-label">Payment Method · TMF671</div>
+        <div class="j-val pending" id="j-pmid">not yet</div>
+      </div>
+      <div class="journey-row">
+        <div class="j-label">Payment ID · TMF676</div>
+        <div class="j-val pending" id="j-payid">not yet</div>
+      </div>
+      <div class="journey-row">
+        <div class="j-label">Razorpay Order ID</div>
+        <div class="j-val pending" id="j-rzpord">not yet</div>
+      </div>
+      <div class="journey-row">
+        <div class="j-label">Razorpay Payment ID</div>
+        <div class="j-val pending" id="j-rzppay">not yet</div>
+      </div>
+      <div class="journey-row">
+        <div class="j-label">Payment Status</div>
+        <div class="j-val pending" id="j-stat">not yet</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:13px;font-weight:800;margin-bottom:10px;">🔌 Connected Services</div>
+      <div style="font-size:12px;color:var(--gray);line-height:2.2;">
+        <div>TMF629 Customer → <code style="font-size:11px">:8083</code></div>
+        <div>TMF637 Inventory → <code style="font-size:11px">:8084</code></div>
+        <div>TMF671 Pay Method → <code style="font-size:11px">:8087</code></div>
+        <div>TMF676 Payment → <code style="font-size:11px">:8086</code></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+const S = {
+  customerId: null, customerName: null,
+  accountId: null,
+  productId: null, productName: null, productAmount: null,
+  pmId: null, pmType: null, pmLabel: null,
+  paymentId: null, rzpKeyId: null,
+};
+
+const API = {
+  tmf629: 'http://localhost:8083',
+  tmf637: 'http://localhost:8084',
+  tmf671: 'http://localhost:8087',
+  tmf676: 'http://localhost:8086',
+};
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function showStep(n) {
+  for (let i = 1; i <= 6; i++) {
+    document.getElementById(`s${i}`).classList.toggle('hidden', i !== n);
+    const ind = document.getElementById(`si-${i}`);
+    ind.classList.remove('active','done');
+    if (i < n) ind.classList.add('done');
+    if (i === n) ind.classList.add('active');
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function jset(id, val) {
+  const el = document.getElementById(id);
+  el.textContent = val;
+  el.classList.remove('pending');
+}
+
+function showRes(id, data, isErr) {
+  document.getElementById(id).innerHTML = `
+    <div class="res-box">
+      <div class="res-header ${isErr?'err':''}" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'">
+        ${isErr ? '❌ Error — click to expand' : '✅ Saved to database — click to view'}
+        <span>▼</span>
+      </div>
+      <div class="res-body">${JSON.stringify(data, null, 2)}</div>
+    </div>`;
+}
+
+async function api(method, url, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) { const e = new Error(); e.data = data; e.status = res.status; throw e; }
+  return data;
+}
+
+function val(id) { return document.getElementById(id).value.trim(); }
+
+// ── Step 1: Register Customer ──────────────────────────────────────────────
+async function step1() {
+  const name = val('c-name'), party = val('c-party'), status = val('c-status');
+  if (!name || !party) return alert('Fill in your name and mobile number.');
+  try {
+    const d = await api('POST', `${API.tmf629}/tmf-api/customerManagement/v4/customer`, {
+      name, engagedPartyId: party, status
+    });
+    S.customerId = d.id; S.customerName = d.name;
+    jset('j-cid', d.id);
+    showRes('r1', d, false);
+    document.getElementById('a-cid').value = d.id;
+    document.getElementById('a-name').value = `${name}'s Account`;
+    setTimeout(() => showStep(2), 700);
+  } catch(e) { showRes('r1', e.data || {error: e.message}, true); }
+}
+
+// ── Step 2: Create Account ─────────────────────────────────────────────────
+async function step2() {
+  const name = val('a-name'), type = val('a-type');
+  if (!name) return alert('Enter an account name.');
+  try {
+    const d = await api('POST', `${API.tmf629}/tmf-api/customerManagement/v4/customerAccount`, {
+      name, accountType: type,
+      customer: { id: S.customerId }
+    });
+    S.accountId = d.id;
+    jset('j-aid', d.id);
+    showRes('r2', d, false);
+    setTimeout(() => showStep(3), 700);
+  } catch(e) { showRes('r2', e.data || {error: e.message}, true); }
+}
+
+// ── Step 3: Pick Plan ──────────────────────────────────────────────────────
+let planEl = null;
+function pickPlan(el, name, price, type) {
+  if (planEl) planEl.classList.remove('selected');
+  el.classList.add('selected'); planEl = el;
+  S.productName = name; S.productAmount = price;
+  const btn = document.getElementById('btn-plan');
+  btn.disabled = false;
+  btn.textContent = `Subscribe to ${name} — ₹${price}/mo →`;
+}
+
+async function step3() {
+  if (!S.productName) return;
+  try {
+    const d = await api('POST', `${API.tmf637}/tmf-api/productInventoryManagement/v4/product`, {
+      name: S.productName,
+      customerId: S.customerId,
+      customerName: S.customerName,
+      description: `${S.productName} — Monthly Subscription`,
+      status: 'active',
+      productOfferingName: S.productName,
+    });
+    S.productId = d.id;
+    jset('j-pid', d.id);
+    showRes('r3', d, false);
+    setTimeout(() => showStep(4), 700);
+  } catch(e) { showRes('r3', e.data || {error: e.message}, true); }
+}
+
+// ── Step 4: Payment Method ─────────────────────────────────────────────────
+function pmTab(type, el) {
+  document.querySelectorAll('.pm-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('pm-type').value = type;
+  document.getElementById('pm-upi').classList.toggle('hidden', type !== 'UPI');
+  document.getElementById('pm-card').classList.toggle('hidden', type === 'UPI');
+}
+
+async function step4() {
+  const type = val('pm-type');
+  let body = { name: `${S.customerName}'s ${type}`, type, customerId: S.customerId, customerName: S.customerName, isDefault: true };
+
+  if (type === 'UPI') {
+    const upiId = val('pm-upi-id');
+    if (!upiId) return alert('Enter your UPI ID.');
+    body.upiId = upiId;
+    S.pmLabel = `UPI: ${upiId}`;
+  } else {
+    const last4 = val('pm-last4'), cname = val('pm-cname');
+    if (!last4 || !cname) return alert('Fill in card details.');
+    body.cardLast4 = last4;
+    body.cardBrand = val('pm-brand');
+    body.cardHolderName = cname;
+    body.expiryMonth = parseInt(val('pm-month')) || 12;
+    body.expiryYear = parseInt(val('pm-year')) || 2029;
+    S.pmLabel = `${body.cardBrand} ****${last4}`;
+  }
+  S.pmType = type;
+
+  try {
+    const d = await api('POST', `${API.tmf671}/tmf-api/paymentMethodManagement/v4/paymentMethod`, body);
+    S.pmId = d.id;
+    jset('j-pmid', d.id);
+    showRes('r4', d, false);
+    // fill summary
+    document.getElementById('sum-plan').textContent = S.productName;
+    document.getElementById('sum-cust').textContent = S.customerName;
+    document.getElementById('sum-pm').textContent = S.pmLabel;
+    document.getElementById('sum-amt').textContent = `₹${S.productAmount}`;
+    setTimeout(() => showStep(5), 700);
+  } catch(e) { showRes('r4', e.data || {error: e.message}, true); }
+}
+
+// ── Step 5: Initiate + Open Razorpay ──────────────────────────────────────
+async function step5() {
+  const btn = document.getElementById('pay-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Creating Razorpay order...';
+
+  try {
+    const d = await api('POST', `${API.tmf676}/tmf-api/paymentManagement/v4/payment/initiate`, {
+      customerId: S.customerId,
+      customerAccountId: S.accountId,
+      amount: S.productAmount,
+      currency: 'INR',
+      paymentMethodType: S.pmType,
+      paymentMethodId: S.pmId,
+      productId: S.productId,
+      description: `Payment for ${S.productName}`,
+    });
+
+    S.paymentId = d.internalPaymentId;
+    S.rzpKeyId = d.razorpayKeyId;
+    jset('j-payid', d.internalPaymentId);
+    jset('j-rzpord', d.razorpayOrderId);
+    jset('j-stat', '⏳ pending');
+    showRes('r5', d, false);
+    btn.disabled = false;
+    btn.textContent = 'Pay with Razorpay →';
+    openRazorpay(d);
+  } catch(e) {
+    showRes('r5', e.data || {error: e.message}, true);
+    btn.disabled = false;
+    btn.textContent = 'Pay with Razorpay →';
+  }
+}
+
+function openRazorpay(d) {
+  const rzp = new Razorpay({
+    key: d.razorpayKeyId,
+    amount: d.amountInPaise,
+    currency: d.currency,
+    order_id: d.razorpayOrderId,
+    name: 'Jio Subscription Engine',
+    description: `${S.productName} — Monthly Subscription`,
+    prefill: { name: S.customerName, email: 'test@jio.com', contact: '9999999999' },
+    theme: { color: '#0B6CD4' },
+    handler: function(resp) {
+      jset('j-rzppay', resp.razorpay_payment_id);
+      jset('j-stat', '⏳ confirming...');
+      showStep(6);
+      pollStatus(S.paymentId);
+    },
+  });
+  rzp.on('payment.failed', function(resp) {
+    jset('j-stat', '❌ failed');
+    showRes('r5', resp.error, true);
+  });
+  rzp.open();
+}
+
+// ── Step 6: Poll payment status ────────────────────────────────────────────
+async function pollStatus(id, tries = 0) {
+  const el = document.getElementById('pay-status');
+  if (tries > 12) {
+    el.innerHTML = `<p>⏳ Webhook still pending. Check your Razorpay dashboard or the DB directly.</p>
+      <p style="margin-top:8px;font-size:12px;color:var(--gray)">Payment ID: <code>${id}</code></p>`;
+    return;
+  }
+  try {
+    const d = await api('GET', `${API.tmf676}/tmf-api/paymentManagement/v4/payment/${id}`);
+    jset('j-stat', d.status);
+    if (d.status === 'settled') {
+      el.innerHTML = `
+        <div style="line-height:2.2">
+          <div>💰 <strong>Amount Paid:</strong> ₹${d.amount} ${d.currency}</div>
+          <div>🆔 <strong>Payment ID:</strong> <code>${d.id}</code></div>
+          <div>🏧 <strong>Auth Code:</strong> <code>${d.authorizationCode || d.razorpayPaymentId || '-'}</code></div>
+          <div>📅 <strong>Date:</strong> ${new Date(d.updatedAt || d.createdAt).toLocaleString()}</div>
+          <div style="margin-top:8px;padding:8px;background:#dcfce7;border-radius:8px;font-size:12px;">
+            ✅ Customer account marked PAID in TMF629<br>
+            📲 Payment receipt SMS sent via TMF681
+          </div>
+        </div>`;
+    } else if (d.status === 'rejected') {
+      el.innerHTML = `<span class="badge b-red">REJECTED</span> Payment failed. Check Razorpay dashboard.`;
+    } else {
+      el.innerHTML = `<span class="badge b-yellow">PENDING</span> Waiting for Razorpay webhook... (retry ${tries+1}/12)`;
+      setTimeout(() => pollStatus(id, tries + 1), 3000);
+    }
+  } catch(e) {
+    setTimeout(() => pollStatus(id, tries + 1), 3000);
+  }
+}
+</script>
+</body>
+</html>

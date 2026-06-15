@@ -72,6 +72,15 @@ public class Payment {
     @JsonProperty("authorizationCode")
     private @Nullable String authorizationCode;
 
+    // ── Razorpay gateway fields ───────────────────────────────────────────────
+    /** Razorpay order ID returned from /initiate — e.g. order_xyz123 */
+    @JsonProperty("razorpayOrderId")
+    private @Nullable String razorpayOrderId;
+
+    /** Razorpay payment ID set after webhook confirmation — e.g. pay_xyz456 */
+    @JsonProperty("razorpayPaymentId")
+    private @Nullable String razorpayPaymentId;
+
     // ── Payment method ────────────────────────────────────────────────────────
     /**
      * How the customer paid: UPI | CREDIT_CARD | DEBIT_CARD | NET_BANKING | WALLET
@@ -163,6 +172,12 @@ public class Payment {
 
     public String getAuthorizationCode()                     { return authorizationCode; }
     public void setAuthorizationCode(String ac)              { this.authorizationCode = ac; }
+
+    public String getRazorpayOrderId()                       { return razorpayOrderId; }
+    public void setRazorpayOrderId(String v)                 { this.razorpayOrderId = v; }
+
+    public String getRazorpayPaymentId()                     { return razorpayPaymentId; }
+    public void setRazorpayPaymentId(String v)               { this.razorpayPaymentId = v; }
 
     public String getPaymentMethodType()                     { return paymentMethodType; }
     public void setPaymentMethodType(String pmt)             { this.paymentMethodType = pmt; }

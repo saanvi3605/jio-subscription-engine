@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, String> {
@@ -26,4 +27,7 @@ public interface PaymentRepository extends JpaRepository<Payment, String> {
 
     /** All payments by payment method type: UPI, CREDIT_CARD, etc. */
     List<Payment> findByPaymentMethodType(String paymentMethodType);
+
+    /** Find a payment by its Razorpay order ID — used by the webhook handler */
+    Optional<Payment> findByRazorpayOrderId(String razorpayOrderId);
 }
