@@ -12,8 +12,11 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
 
     List<Customer> findByStatus(String status);
 
-    /** Look up a customer by their party id (cross-service join) */
     Optional<Customer> findByEngagedPartyId(String engagedPartyId);
+
+    Optional<Customer> findByEmail(String email);
+
+    boolean existsByEmail(String email);
 
     List<Customer> findByCustomerRank(String customerRank);
 }

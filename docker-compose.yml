@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
 
   # ── Database ────────────────────────────────────────────────────────────────
@@ -48,6 +46,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/jio_customer?createDatabaseIfNotExist=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: Saanvi@999
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      SERVICES_TMF632_URL: http://party-management-service:8082
+      SERVICES_TMF681_URL: http://communication-management-service:8088
     depends_on:
       mariadb:
         condition: service_healthy
@@ -185,9 +186,12 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/jio_communication?createDatabaseIfNotExist=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: Saanvi@999
+      SERVICES_LITELLM_URL: http://litellm:4000
     depends_on:
       mariadb:
         condition: service_healthy
+      litellm:
+        condition: service_started
 
   process-flow-service:
     build:
@@ -202,11 +206,48 @@ services:
       SPRING_DATASOURCE_PASSWORD: Saanvi@999
       SERVICES_TMF629_URL: http://customer-management-service:8083
       SERVICES_TMF622_URL: http://product-order-service:8080
+      SERVICES_LITELLM_URL: http://litellm:4000
     depends_on:
       mariadb:
         condition: service_healthy
       customer-management-service:
         condition: service_started
+      litellm:
+        condition: service_started
+
+  # ── LiteLLM Proxy ───────────────────────────────────────────────────────────
+  litellm-db:
+    image: postgres:15-alpine
+    container_name: jio-litellm-db
+    environment:
+      POSTGRES_DB: litellm
+      POSTGRES_USER: litellm
+      POSTGRES_PASSWORD: litellm123
+    volumes:
+      - litellm_db_data:/var/lib/postgresql/data
+      - ./litellm-init.sql:/docker-entrypoint-initdb.d/litellm-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U litellm"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    container_name: jio-litellm
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./litellm-config.yaml:/app/config.yaml
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    environment:
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      LITELLM_MASTER_KEY: sk-jio-1234
+      DATABASE_URL: postgresql://litellm:litellm123@litellm-db:5432/litellm
+    depends_on:
+      litellm-db:
+        condition: service_healthy
 
 volumes:
   mariadb_data:
+  litellm_db_data:

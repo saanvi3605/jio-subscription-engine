@@ -1,0 +1,22 @@
+model_list:
+  - model_name: subscription-advisor
+    litellm_params:
+      model: groq/llama-3.1-8b-instant
+      api_key: os.environ/GROQ_API_KEY
+
+  - model_name: sms-writer
+    litellm_params:
+      model: groq/llama-3.1-8b-instant
+      api_key: os.environ/GROQ_API_KEY
+
+  - model_name: support-agent
+    litellm_params:
+      model: groq/llama-3.1-8b-instant
+      api_key: os.environ/GROQ_API_KEY
+
+litellm_settings:
+  drop_params: true
+  fallbacks:
+    - {"subscription-advisor": ["support-agent"]}
+    - {"support-agent": ["sms-writer"]}
+    - {"sms-writer": ["subscription-advisor"]}

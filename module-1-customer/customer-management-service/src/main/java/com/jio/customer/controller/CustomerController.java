@@ -1,5 +1,6 @@
 package com.jio.customer.controller;
 
+import com.jio.customer.client.LiteLLMClient;
 import com.jio.customer.model.Customer;
 import com.jio.customer.service.CustomerService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * TMF629 Customer Management API — Customer resource
@@ -23,9 +25,11 @@ import java.util.List;
 public class CustomerController {
 
     private final CustomerService service;
+    private final LiteLLMClient liteLLMClient;
 
-    public CustomerController(CustomerService service) {
+    public CustomerController(CustomerService service, LiteLLMClient liteLLMClient) {
         this.service = service;
+        this.liteLLMClient = liteLLMClient;
     }
 
     @PostMapping
@@ -90,5 +94,23 @@ public class CustomerController {
         return service.delete(id)
                 ? ResponseEntity.noContent().build()
                 : ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/support/chat")
+    @Operation(summary = "AI-powered customer support chat",
+               description = "Send a question about your Jio subscription and get an AI-generated answer")
+    @ApiResponse(responseCode = "200", description = "AI reply returned")
+    public ResponseEntity<Map<String, String>> supportChat(@RequestBody Map<String, String> body) {
+        String message = body.getOrDefault("message", "");
+        String customerId = body.getOrDefault("customerId", "unknown");
+        String systemPrompt = """
+                You are a helpful Jio customer support assistant.
+                You help customers with questions about their Jio subscriptions, plans, payments, and services.
+                Be concise, friendly, and accurate. If you don't know something specific about a customer's account, \
+                say so and direct them to contact Jio support at 199.
+                """;
+        String userMessage = "Customer ID: " + customerId + "\nQuestion: " + message;
+        String reply = liteLLMClient.chat(systemPrompt, userMessage);
+        return ResponseEntity.ok(Map.of("customerId", customerId, "reply", reply));
     }
 }

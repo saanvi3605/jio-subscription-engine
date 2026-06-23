@@ -1,5 +1,6 @@
 package com.jio.processflow.controller;
 
+import com.jio.processflow.client.LiteLLMClient;
 import com.jio.processflow.model.FlowCharacteristic;
 import com.jio.processflow.model.ProcessFlow;
 import com.jio.processflow.service.ProcessFlowService;
@@ -15,9 +16,11 @@ import java.util.Map;
 public class ProcessFlowController {
 
     private final ProcessFlowService service;
+    private final LiteLLMClient liteLLMClient;
 
-    public ProcessFlowController(ProcessFlowService service) {
+    public ProcessFlowController(ProcessFlowService service, LiteLLMClient liteLLMClient) {
         this.service = service;
+        this.liteLLMClient = liteLLMClient;
     }
 
     /**
@@ -81,6 +84,75 @@ public class ProcessFlowController {
         return service.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * AI-powered subscription plan recommendation.
+     * Body: { "customerId": "123", "monthlyBudget": "500",
+     *         "dataUsageGb": "50", "preferences": "streaming, gaming" }
+     */
+    @PostMapping("/recommend")
+    public ResponseEntity<Map<String, String>> recommend(@RequestBody Map<String, String> body) {
+        String customerId    = body.getOrDefault("customerId", "unknown");
+        String budget        = body.getOrDefault("monthlyBudget", "not specified");
+        String dataUsage     = body.getOrDefault("dataUsageGb", "not specified");
+        String preferences   = body.getOrDefault("preferences", "general use");
+
+        String systemPrompt = """
+                You are a Jio subscription advisor. Based on the customer's profile, recommend the best Jio plan.
+                Jio plans available:
+                - Jio Basic (Rs 199/mo): 1.5 GB/day, unlimited calls, 28 days
+                - Jio Smart (Rs 399/mo): 2 GB/day, unlimited calls, OTT bundle, 28 days
+                - Jio Fiber Silver (Rs 499/mo): 100 Mbps broadband, 100 GB data, OTT apps
+                - Jio Fiber Gold (Rs 999/mo): 300 Mbps broadband, unlimited data, all OTT apps
+                - Jio AirFiber (Rs 599/mo): 5G wireless home broadband, 150 Mbps, unlimited
+                Respond with: recommended plan name, price, reason (2 sentences max), and one upsell tip.
+                """;
+        String userMessage = "Customer ID: " + customerId
+                + "\nMonthly budget: Rs " + budget
+                + "\nData usage: " + dataUsage + " GB/month"
+                + "\nPreferences: " + preferences;
+
+        String recommendation = liteLLMClient.chat(systemPrompt, userMessage, "subscription-advisor");
+        return ResponseEntity.ok(Map.of("customerId", customerId, "recommendation", recommendation));
+    }
+
+    /**
+     * Contextual AI chat assistant.
+     * Body: { "message": "...", "step": "3", "context": "Customer: Saanvi, plan: Jio Postpaid Plus" }
+     */
+    @PostMapping("/chat")
+    public ResponseEntity<Map<String, String>> chat(@RequestBody Map<String, String> body) {
+        String message = body.getOrDefault("message", "");
+        String step    = body.getOrDefault("step", "0");
+        String context = body.getOrDefault("context", "");
+
+        if (message.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("reply", "No message provided."));
+        }
+
+        String systemPrompt = buildChatSystemPrompt(step, context);
+        String reply = liteLLMClient.chat(systemPrompt, message, "support-agent");
+        return ResponseEntity.ok(Map.of("reply", reply));
+    }
+
+    private String buildChatSystemPrompt(String step, String context) {
+        String stepContext = switch (step) {
+            case "1" -> "The customer is signing up for a new Jio account or logging into an existing one.";
+            case "2" -> "The customer is creating a billing account linked to their profile.";
+            case "3" -> "The customer is browsing and selecting a subscription plan from the catalog.";
+            case "4" -> "The customer is placing a product order for their chosen plan.";
+            case "5" -> "The customer is adding a payment method (UPI, credit card, or debit card).";
+            case "6" -> "The customer is completing their payment through Razorpay.";
+            case "7" -> "The customer's payment is done and their subscription is now active.";
+            default  -> "The customer is navigating the Jio Subscription Portal.";
+        };
+        String extra = context.isBlank() ? "" : "\nSession context: " + context;
+        return """
+                You are a helpful Jio customer support assistant embedded in the Jio Subscription Portal.
+                Answer questions about Jio plans, payments, account setup, and the subscription process.
+                Be concise (2–3 sentences), friendly, and specific to Jio services.
+                Current step: """ + stepContext + extra;
     }
 
     /**

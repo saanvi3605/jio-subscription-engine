@@ -62,4 +62,35 @@ public class CommunicationClient {
             log.warn("[TMF629→TMF681] Could not send welcome message for customer {}: {}", customerId, e.getMessage());
         }
     }
+
+    /**
+     * Fires an activation notification when a prospect customer logs in for the first time
+     * and their status flips to "active".
+     */
+    public void sendActivation(String customerId, String customerName) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("type",              "SMS");
+            body.put("subject",           "Your Jio account is now active!");
+            body.put("content",           "Hi " + customerName +
+                                          "! Your Jio account is now active. You can now browse plans and place orders. " +
+                                          "Customer ID: " + customerId);
+            body.put("customerId",        customerId);
+            body.put("relatedEntityType", "Customer");
+            body.put("relatedEntityId",   customerId);
+            body.put("sender",            "Jio");
+
+            restTemplate.postForObject(
+                communicationServiceUrl + "/tmf-api/communicationManagement/v4/communicationMessage",
+                new HttpEntity<>(body, headers),
+                Object.class
+            );
+            log.info("[TMF629→TMF681] Activation SMS queued for customer {}", customerId);
+        } catch (Exception e) {
+            log.warn("[TMF629→TMF681] Could not send activation message for customer {}: {}", customerId, e.getMessage());
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package com.jio.customer.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -58,6 +59,15 @@ public class Customer {
      */
     @JsonProperty("customerRank")
     private @Nullable String customerRank;
+
+    // ── Auth credentials ─────────────────────────────────────────────────────
+    @Column(unique = true)
+    @JsonProperty("email")
+    private @Nullable String email;
+
+    @JsonIgnore
+    @Column(name = "password_hash")
+    private @Nullable String passwordHash;
 
     // ── Cross-service reference to TMF632 Party ──────────────────────────────
     /**
@@ -127,6 +137,12 @@ public class Customer {
 
     public String getCustomerRank()                       { return customerRank; }
     public void setCustomerRank(String customerRank)      { this.customerRank = customerRank; }
+
+    public String getEmail()                { return email; }
+    public void setEmail(String email)      { this.email = email; }
+
+    public String getPasswordHash()                     { return passwordHash; }
+    public void setPasswordHash(String passwordHash)    { this.passwordHash = passwordHash; }
 
     public String getEngagedPartyId()                     { return engagedPartyId; }
     public void setEngagedPartyId(String engagedPartyId)  { this.engagedPartyId = engagedPartyId; }

@@ -3,10 +3,15 @@ package com.jio.customer.client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
 
 /**
  * HTTP client for TMF632 Party Management Service (port 8082).
@@ -29,6 +34,30 @@ public class PartyClient {
 
     public PartyClient(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
+    }
+
+    /**
+     * Creates an Individual in TMF632 and returns the new individual's id.
+     * Called during customer signup so the TMF632→TMF629 link is established.
+     * Throws RuntimeException if the party service is unreachable.
+     */
+    public String createIndividual(String givenName, String familyName) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        Map<String, String> body = Map.of(
+            "givenName",  givenName,
+            "familyName", familyName
+        );
+        @SuppressWarnings("unchecked")
+        Map<String, Object> response = restTemplate.postForObject(
+            partyServiceUrl + "/tmf-api/partyManagement/v4/individual",
+            new HttpEntity<>(body, headers),
+            Map.class
+        );
+        if (response == null || !response.containsKey("id")) {
+            throw new RuntimeException("Party service returned no id for new Individual");
+        }
+        return (String) response.get("id");
     }
 
     /**

@@ -6,3 +6,5 @@
 **/.mvn/
 **/mvnw
 **/mvnw.cmd
+.env
+*.env

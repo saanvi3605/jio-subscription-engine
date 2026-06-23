@@ -32,7 +32,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 
 /* Progress */
 .progress-wrap { background: white; padding: 20px 32px; border-bottom: 1px solid var(--border); }
-.steps { display: flex; justify-content: space-between; max-width: 860px; margin: 0 auto; position: relative; }
+.steps { display: flex; justify-content: space-between; max-width: 940px; margin: 0 auto; position: relative; }
 .steps::before { content: ''; position: absolute; top: 19px; left: 24px; right: 24px; height: 2px; background: var(--border); z-index: 0; }
 .step { display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 1; }
 .step-dot {
@@ -140,6 +140,43 @@ code { background: #e5e7eb; padding: 1px 5px; border-radius: 4px; font-family: m
 .spin { display: inline-block; width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.7s linear infinite; vertical-align: middle; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .hidden { display: none !important; }
+
+/* ── Floating AI Chat Widget ───────────────────────────────────────── */
+.chat-toggle {
+  position: fixed; bottom: 24px; right: 24px; z-index: 1000;
+  width: 56px; height: 56px; border-radius: 50%; border: none;
+  background: var(--blue); color: white; font-size: 22px; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(11,108,212,0.45); transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.chat-toggle:hover { background: var(--dark); transform: scale(1.1); }
+.chat-window {
+  position: fixed; bottom: 92px; right: 24px; z-index: 1000;
+  width: 340px; height: 450px; background: white; border-radius: 16px;
+  box-shadow: 0 8px 36px rgba(0,0,0,0.18); display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.chat-header {
+  background: linear-gradient(135deg, var(--blue), var(--dark));
+  color: white; padding: 14px 18px; font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.chat-header-close { margin-left: auto; cursor: pointer; opacity: 0.75; font-size: 16px; line-height: 1; }
+.chat-header-close:hover { opacity: 1; }
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 14px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.msg { max-width: 86%; padding: 9px 13px; border-radius: 12px; font-size: 13px; line-height: 1.55; word-break: break-word; }
+.msg.bot  { background: #f0f6ff; color: #1a1a2e; align-self: flex-start; border-bottom-left-radius: 4px; }
+.msg.user { background: var(--blue); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+.msg.thinking { background: #f1f5f9; color: var(--gray); font-style: italic; align-self: flex-start; }
+.chat-input-row { padding: 12px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-shrink: 0; }
+.chat-input-row input { flex: 1; padding: 9px 12px; border: 2px solid var(--border); border-radius: 9px; font-size: 13px; outline: none; transition: border-color 0.2s; }
+.chat-input-row input:focus { border-color: var(--blue); }
+.chat-send-btn { padding: 9px 16px; background: var(--blue); color: white; border: none; border-radius: 9px; cursor: pointer; font-weight: 700; font-size: 13px; transition: background 0.2s; white-space: nowrap; }
+.chat-send-btn:hover:not(:disabled) { background: var(--dark); }
+.chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>
 </head>
 <body>
@@ -149,19 +186,20 @@ code { background: #e5e7eb; padding: 1px 5px; border-radius: 4px; font-family: m
   <div class="logo">jio</div>
   <div class="header-text">
     <div>Subscription Portal</div>
-    <div>TMF Open API Demo · Full Pipeline Test</div>
+    <div>TMF Open API Demo · Full Pipeline (10 Microservices)</div>
   </div>
 </div>
 
-<!-- Progress -->
+<!-- Progress — 7 steps -->
 <div class="progress-wrap">
   <div class="steps">
-    <div class="step active" id="si-1"><div class="step-dot">1</div><div class="step-lbl">Register</div></div>
+    <div class="step active" id="si-1"><div class="step-dot">1</div><div class="step-lbl">Sign In</div></div>
     <div class="step" id="si-2"><div class="step-dot">2</div><div class="step-lbl">Account</div></div>
     <div class="step" id="si-3"><div class="step-dot">3</div><div class="step-lbl">Pick Plan</div></div>
-    <div class="step" id="si-4"><div class="step-dot">4</div><div class="step-lbl">Pay Method</div></div>
-    <div class="step" id="si-5"><div class="step-dot">5</div><div class="step-lbl">Pay</div></div>
-    <div class="step" id="si-6"><div class="step-dot">✓</div><div class="step-lbl">Done</div></div>
+    <div class="step" id="si-4"><div class="step-dot">4</div><div class="step-lbl">Order</div></div>
+    <div class="step" id="si-5"><div class="step-dot">5</div><div class="step-lbl">Pay Method</div></div>
+    <div class="step" id="si-6"><div class="step-dot">6</div><div class="step-lbl">Pay</div></div>
+    <div class="step" id="si-7"><div class="step-dot">✓</div><div class="step-lbl">Done</div></div>
   </div>
 </div>
 
@@ -169,35 +207,42 @@ code { background: #e5e7eb; padding: 1px 5px; border-radius: 4px; font-family: m
   <!-- Steps Column -->
   <div>
 
-    <!-- STEP 1: Register Customer -->
+    <!-- STEP 1: Sign Up / Log In  (TMF629 auth + TMF632 Individual) -->
     <div class="card" id="s1">
-      <div class="card-title">👤 Register as a Customer</div>
-      <div class="card-sub">Creates your profile in Customer Management — saved to <strong>jio_customer</strong> DB (TMF629)</div>
-      <div class="form-row">
-        <div class="fg">
-          <label>Full Name</label>
-          <input id="c-name" placeholder="e.g. Saanvi Sharma" />
-        </div>
-        <div class="fg">
-          <label>Mobile Number</label>
-          <input id="c-party" placeholder="e.g. 9876543210" />
-        </div>
+      <div class="card-title">🔐 Welcome to Jio</div>
+      <div class="card-sub">New customer? Sign up. Already with us? Log in to continue. (TMF629 + TMF632)</div>
+
+      <div class="pm-tabs" style="margin-bottom:22px;">
+        <div class="pm-tab active" id="tab-signup" onclick="authTab('signup')">✨ New Customer — Sign Up</div>
+        <div class="pm-tab" id="tab-login" onclick="authTab('login')">🔑 Returning Customer — Log In</div>
       </div>
-      <div class="fg">
-        <label>Status</label>
-        <select id="c-status">
-          <option value="prospect">Prospect (New)</option>
-          <option value="active">Active</option>
-        </select>
+
+      <!-- Sign Up Form -->
+      <div id="form-signup">
+        <div class="form-row">
+          <div class="fg"><label>First Name</label><input id="c-given" placeholder="e.g. Saanvi" /></div>
+          <div class="fg"><label>Last Name</label><input id="c-family" placeholder="e.g. Sharma" /></div>
+        </div>
+        <div class="fg"><label>Email</label><input id="c-email-su" type="email" placeholder="e.g. saanvi@gmail.com" /></div>
+        <div class="fg"><label>Password</label><input id="c-pass-su" type="password" placeholder="Choose a password (min 6 chars)" /></div>
+        <button class="btn btn-blue" onclick="doSignup()">Create Account →</button>
       </div>
-      <button class="btn btn-blue" onclick="step1()">Register Customer →</button>
+
+      <!-- Log In Form -->
+      <div id="form-login" class="hidden">
+        <div class="hint">Your account will be marked <strong>active</strong> on first login and you'll get an activation SMS.</div>
+        <div class="fg"><label>Email</label><input id="c-email-li" type="email" placeholder="your@email.com" /></div>
+        <div class="fg"><label>Password</label><input id="c-pass-li" type="password" placeholder="Your password" /></div>
+        <button class="btn btn-blue" onclick="doLogin()">Log In →</button>
+      </div>
+
       <div id="r1"></div>
     </div>
 
-    <!-- STEP 2: Create Account -->
+    <!-- STEP 2: Create Billing Account (TMF629 CustomerAccount + TMF632 PartyRole) -->
     <div class="card hidden" id="s2">
       <div class="card-title">🏦 Create Billing Account</div>
-      <div class="card-sub">Sets up your billing account — saved to <strong>jio_customer</strong> DB (TMF629)</div>
+      <div class="card-sub">Sets up your billing account (TMF629 · :8083) · Subscriber role assigned in TMF632 (:8082)</div>
       <div class="fg">
         <label>Customer ID (auto-filled)</label>
         <input id="a-cid" readonly />
@@ -220,43 +265,61 @@ code { background: #e5e7eb; padding: 1px 5px; border-radius: 4px; font-family: m
       <div id="r2"></div>
     </div>
 
-    <!-- STEP 3: Choose Plan -->
+    <!-- STEP 3: Choose Plan  (TMF620 catalog → TMF637 inventory) -->
     <div class="card hidden" id="s3">
       <div class="card-title">📱 Choose a Subscription Plan</div>
-      <div class="card-sub">Select your plan — saved to <strong>jio_product_inventory</strong> DB (TMF637)</div>
-      <div class="plans">
-        <div class="plan" onclick="pickPlan(this,'Jio Prepaid Lite',199,'PREPAID')">
-          <div class="plan-name">Jio Prepaid Lite</div>
-          <div class="plan-price"><sup>₹</sup>199 <small>/mo</small></div>
-          <div class="plan-perks">📞 Unlimited calls<br>📶 1 GB/day data<br>✉️ 100 SMS/day</div>
+      <div class="card-sub">Plans loaded from <strong>TMF620 Product Catalog</strong> (:8081) · saved to <strong>TMF637 Inventory</strong> (:8084)</div>
+
+      <!-- AI Recommendation (TMF701) -->
+      <div style="background:linear-gradient(135deg,#f0f6ff,#e8f0fe);border:1.5px solid #bfdbfe;border-radius:13px;padding:16px;margin-bottom:18px;">
+        <div style="font-size:13px;font-weight:800;margin-bottom:10px;">✨ Not sure which plan? Ask AI (TMF701)</div>
+        <div class="form-row" style="margin-bottom:10px;">
+          <div class="fg" style="margin-bottom:0">
+            <label>Monthly Budget (₹)</label>
+            <input id="ai-budget" placeholder="e.g. 500" type="number" />
+          </div>
+          <div class="fg" style="margin-bottom:0">
+            <label>Data Usage (GB/month)</label>
+            <input id="ai-data" placeholder="e.g. 30" type="number" />
+          </div>
         </div>
-        <div class="plan" onclick="pickPlan(this,'Jio Postpaid Plus',499,'POSTPAID')">
-          <div class="plan-badge">POPULAR</div>
-          <div class="plan-name">Jio Postpaid Plus</div>
-          <div class="plan-price"><sup>₹</sup>499 <small>/mo</small></div>
-          <div class="plan-perks">📞 Unlimited calls<br>📶 3 GB/day data<br>🎬 Disney+ Hotstar</div>
+        <div class="fg" style="margin-bottom:10px;">
+          <label>Preferences</label>
+          <input id="ai-prefs" placeholder="e.g. streaming, gaming, work from home" />
         </div>
-        <div class="plan" onclick="pickPlan(this,'Jio Postpaid Elite',999,'POSTPAID')">
-          <div class="plan-badge" style="background:#7c3aed;">PREMIUM</div>
-          <div class="plan-name">Jio Postpaid Elite</div>
-          <div class="plan-price"><sup>₹</sup>999 <small>/mo</small></div>
-          <div class="plan-perks">📞 Unlimited calls<br>📶 5 GB/day data<br>🎬 All OTT Platforms</div>
-        </div>
-        <div class="plan" onclick="pickPlan(this,'JioFiber Premium',1299,'BROADBAND')">
-          <div class="plan-name">JioFiber Premium</div>
-          <div class="plan-price"><sup>₹</sup>1299 <small>/mo</small></div>
-          <div class="plan-perks">🌐 100 Mbps speed<br>📶 Unlimited data<br>🎬 OTT + JioTV</div>
-        </div>
+        <button class="btn btn-blue" id="ai-rec-btn" onclick="getAiRecommendation()" style="margin-top:0;padding:10px;">
+          ✨ Get AI Recommendation
+        </button>
+        <div id="ai-rec-result" style="display:none;margin-top:12px;background:white;border-radius:10px;padding:14px;font-size:13px;line-height:1.7;border:1px solid #bfdbfe;color:#1e3a5f;"></div>
+      </div>
+
+      <div id="catalog-status" style="font-size:11px;color:var(--gray);margin-bottom:10px;padding:8px 12px;border-radius:8px;background:#f8fafc;display:none;"></div>
+      <div class="plans" id="plans-grid">
+        <!-- filled by loadCatalog() on showStep(3) -->
       </div>
       <button class="btn btn-blue" id="btn-plan" onclick="step3()" disabled>Select a Plan to Continue →</button>
       <div id="r3"></div>
     </div>
 
-    <!-- STEP 4: Payment Method -->
+    <!-- STEP 4: Place Order  (TMF622 Product Order) -->
     <div class="card hidden" id="s4">
+      <div class="card-title">📋 Place Your Order</div>
+      <div class="card-sub">Creates a product order — saved to <strong>jio_product_order</strong> DB (TMF622 · :8080)</div>
+      <div class="summary">
+        <div class="summary-row"><span>Customer</span><strong id="ord-cust">-</strong></div>
+        <div class="summary-row"><span>Plan Ordered</span><strong id="ord-plan">-</strong></div>
+        <div class="summary-row"><span>Account</span><strong id="ord-acc">-</strong></div>
+        <div class="summary-row"><span>Amount</span><span id="ord-amt">₹0</span></div>
+      </div>
+      <button class="btn btn-blue" id="btn-order" onclick="step4()">Place Order →</button>
+      <div id="r4"></div>
+    </div>
+
+    <!-- STEP 5: Payment Method  (TMF671) -->
+    <div class="card hidden" id="s5">
       <div class="card-title">💳 Add Payment Method</div>
-      <div class="card-sub">Register your payment instrument — saved to <strong>jio_payment_method</strong> DB (TMF671)</div>
-      <div class="pm-tabs">
+      <div class="card-sub">Register your payment instrument — saved to <strong>jio_payment_method</strong> DB (TMF671 · :8087)</div>
+      <div class="pm-tabs" id="pm-method-tabs">
         <div class="pm-tab active" onclick="pmTab('UPI',this)">UPI</div>
         <div class="pm-tab" onclick="pmTab('CREDIT_CARD',this)">Credit Card</div>
         <div class="pm-tab" onclick="pmTab('DEBIT_CARD',this)">Debit Card</div>
@@ -282,14 +345,14 @@ code { background: #e5e7eb; padding: 1px 5px; border-radius: 4px; font-family: m
         </div>
       </div>
 
-      <button class="btn btn-blue" onclick="step4()">Save Payment Method →</button>
-      <div id="r4"></div>
+      <button class="btn btn-blue" onclick="step5()">Save Payment Method →</button>
+      <div id="r5"></div>
     </div>
 
-    <!-- STEP 5: Pay -->
-    <div class="card hidden" id="s5">
+    <!-- STEP 6: Pay  (TMF676 + Razorpay) -->
+    <div class="card hidden" id="s6">
       <div class="card-title">💰 Complete Payment</div>
-      <div class="card-sub">Initiates Razorpay order — saved to <strong>jio_payment</strong> DB (TMF676)</div>
+      <div class="card-sub">Initiates Razorpay order — saved to <strong>jio_payment</strong> DB (TMF676 · :8086)</div>
       <div class="summary">
         <div class="summary-row"><span>Plan</span><strong id="sum-plan">-</strong></div>
         <div class="summary-row"><span>Customer</span><strong id="sum-cust">-</strong></div>
@@ -300,25 +363,40 @@ code { background: #e5e7eb; padding: 1px 5px; border-radius: 4px; font-family: m
         🧪 <strong>Test Mode active.</strong> Use UPI ID <code>success@razorpay</code> in the popup,
         or card <code>4111 1111 1111 1111</code> · any future expiry · any CVV · any name.
       </div>
-      <button class="btn btn-orange" id="pay-btn" onclick="step5()">Pay with Razorpay →</button>
-      <div id="r5"></div>
+      <button class="btn btn-orange" id="pay-btn" onclick="step6()">Pay with Razorpay →</button>
+      <div id="r6"></div>
     </div>
 
-    <!-- STEP 6: Done -->
-    <div class="card hidden" id="s6">
+    <!-- STEP 7: Done -->
+    <div class="card hidden" id="s7">
       <div class="success-wrap">
         <span class="success-icon">🎉</span>
-        <h2 style="font-size:26px;font-weight:900;margin-bottom:8px;">Payment Successful!</h2>
-        <p style="color:var(--gray);margin-bottom:20px;">Your Jio subscription is now active and saved across all services.</p>
+        <h2 style="font-size:26px;font-weight:900;margin-bottom:8px;">Subscription Active!</h2>
+        <p style="color:var(--gray);margin-bottom:20px;">Your Jio subscription is now live and persisted across all 10 microservices.</p>
         <div class="svc-tags">
-          <div class="svc-tag">✅ jio_customer updated (TMF629)</div>
-          <div class="svc-tag">✅ jio_product_inventory saved (TMF637)</div>
-          <div class="svc-tag">✅ jio_payment_method saved (TMF671)</div>
-          <div class="svc-tag">✅ jio_payment settled (TMF676)</div>
-          <div class="svc-tag">✅ SMS receipt fired (TMF681)</div>
+          <div class="svc-tag">✅ TMF632 Individual created</div>
+          <div class="svc-tag">✅ TMF629 Customer authenticated</div>
+          <div class="svc-tag">✅ TMF632 Subscriber role assigned</div>
+          <div class="svc-tag">✅ TMF629 Billing account created</div>
+          <div class="svc-tag">✅ TMF620 Plan loaded from catalog</div>
+          <div class="svc-tag">✅ TMF637 Product inventory saved</div>
+          <div class="svc-tag">✅ TMF622 Product order placed</div>
+          <div class="svc-tag">✅ TMF671 Payment method saved</div>
+          <div class="svc-tag">✅ TMF676 Payment settled via Razorpay</div>
+          <div class="svc-tag">✅ TMF635 Usage record logged</div>
+          <div class="svc-tag">✅ TMF681 AI SMS dispatched</div>
+          <div class="svc-tag">✅ TMF701 AI Recommendation available</div>
         </div>
         <div id="pay-status" style="background:#f0fdf4;border-radius:12px;padding:16px;margin:20px 0;text-align:left;font-size:13px;line-height:2;">
           Checking payment status...
+        </div>
+        <div id="usage-wrap" style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:13px;padding:16px;margin:12px 0;text-align:left;display:none;">
+          <div style="font-size:13px;font-weight:800;margin-bottom:8px;">📊 TMF635 Usage Record</div>
+          <div id="usage-text" style="font-size:13px;line-height:1.9;color:#1a1a2e;"></div>
+        </div>
+        <div id="ai-sms-wrap" style="background:linear-gradient(135deg,#f0f6ff,#e8f0fe);border:1.5px solid #bfdbfe;border-radius:13px;padding:16px;margin:16px 0;text-align:left;display:none;">
+          <div style="font-size:13px;font-weight:800;margin-bottom:8px;">✨ AI-Generated Welcome SMS (TMF681 + TMF701)</div>
+          <div id="ai-sms-text" style="font-size:14px;line-height:1.7;color:#1e3a5f;"></div>
         </div>
         <button class="btn btn-blue" onclick="location.reload()" style="max-width:260px;margin:0 auto;">
           Start New Subscription
@@ -333,6 +411,14 @@ code { background: #e5e7eb; padding: 1px 5px; border-radius: 4px; font-family: m
     <div class="card">
       <div style="font-size:15px;font-weight:800;margin-bottom:14px;">🗺️ Journey Tracker</div>
       <div class="journey-row">
+        <div class="j-label">Individual ID · TMF632</div>
+        <div class="j-val pending" id="j-indid">not yet</div>
+      </div>
+      <div class="journey-row">
+        <div class="j-label">Party Role ID · TMF632</div>
+        <div class="j-val pending" id="j-prid">not yet</div>
+      </div>
+      <div class="journey-row">
         <div class="j-label">Customer ID · TMF629</div>
         <div class="j-val pending" id="j-cid">not yet</div>
       </div>
@@ -343,6 +429,10 @@ code { background: #e5e7eb; padding: 1px 5px; border-radius: 4px; font-family: m
       <div class="journey-row">
         <div class="j-label">Product ID · TMF637</div>
         <div class="j-val pending" id="j-pid">not yet</div>
+      </div>
+      <div class="journey-row">
+        <div class="j-label">Order ID · TMF622</div>
+        <div class="j-val pending" id="j-oid">not yet</div>
       </div>
       <div class="journey-row">
         <div class="j-label">Payment Method · TMF671</div>
@@ -361,20 +451,47 @@ code { background: #e5e7eb; padding: 1px 5px; border-radius: 4px; font-family: m
         <div class="j-val pending" id="j-rzppay">not yet</div>
       </div>
       <div class="journey-row">
+        <div class="j-label">Usage ID · TMF635</div>
+        <div class="j-val pending" id="j-usid">not yet</div>
+      </div>
+      <div class="journey-row">
         <div class="j-label">Payment Status</div>
         <div class="j-val pending" id="j-stat">not yet</div>
       </div>
     </div>
 
     <div class="card">
-      <div style="font-size:13px;font-weight:800;margin-bottom:10px;">🔌 Connected Services</div>
-      <div style="font-size:12px;color:var(--gray);line-height:2.2;">
+      <div style="font-size:13px;font-weight:800;margin-bottom:10px;">🔌 Connected Services (10)</div>
+      <div style="font-size:12px;color:var(--gray);line-height:2.3;">
         <div>TMF629 Customer → <code style="font-size:11px">:8083</code></div>
+        <div>TMF632 Party → <code style="font-size:11px">:8082</code></div>
+        <div>TMF620 Catalog → <code style="font-size:11px">:8081</code></div>
         <div>TMF637 Inventory → <code style="font-size:11px">:8084</code></div>
+        <div>TMF622 Orders → <code style="font-size:11px">:8080</code></div>
+        <div>TMF635 Usage → <code style="font-size:11px">:8085</code></div>
         <div>TMF671 Pay Method → <code style="font-size:11px">:8087</code></div>
         <div>TMF676 Payment → <code style="font-size:11px">:8086</code></div>
+        <div>TMF681 Communication → <code style="font-size:11px">:8088</code></div>
+        <div>TMF701 Process Flow → <code style="font-size:11px">:8089</code></div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ── Floating AI Chat Widget (visible on all steps) ───────────────────── -->
+<button class="chat-toggle" id="chat-toggle-btn" onclick="toggleChat()" title="Ask Jio AI Assistant">💬</button>
+<div class="chat-window hidden" id="chat-window">
+  <div class="chat-header">
+    <span>🤖</span>
+    <span>Jio AI Assistant</span>
+    <span class="chat-header-close" onclick="toggleChat()">✕</span>
+  </div>
+  <div class="chat-messages" id="chat-messages">
+    <div class="msg bot">Hi! I'm your Jio AI Assistant — powered by Groq via TMF701. Ask me anything about plans, payments, or your subscription. 😊</div>
+  </div>
+  <div class="chat-input-row">
+    <input id="chat-input" placeholder="Ask anything..." onkeydown="if(event.key==='Enter')sendChat()" />
+    <button class="chat-send-btn" id="chat-send-btn" onclick="sendChat()">Send</button>
   </div>
 </div>
 
@@ -382,28 +499,39 @@ code { background: #e5e7eb; padding: 1px 5px; border-radius: 4px; font-family: m
 // ── State ──────────────────────────────────────────────────────────────────
 const S = {
   customerId: null, customerName: null,
+  individualId: null, partyRoleId: null,
   accountId: null,
   productId: null, productName: null, productAmount: null,
+  orderId: null,
   pmId: null, pmType: null, pmLabel: null,
   paymentId: null, rzpKeyId: null,
+  usageId: null,
 };
 
 const API = {
   tmf629: 'http://localhost:8083',
+  tmf632: 'http://localhost:8082',
+  tmf620: 'http://localhost:8081',
   tmf637: 'http://localhost:8084',
+  tmf622: 'http://localhost:8080',
+  tmf635: 'http://localhost:8085',
   tmf671: 'http://localhost:8087',
   tmf676: 'http://localhost:8086',
+  tmf681: 'http://localhost:8088',
+  tmf701: 'http://localhost:8089',
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function showStep(n) {
-  for (let i = 1; i <= 6; i++) {
+  for (let i = 1; i <= 7; i++) {
     document.getElementById(`s${i}`).classList.toggle('hidden', i !== n);
     const ind = document.getElementById(`si-${i}`);
-    ind.classList.remove('active','done');
+    ind.classList.remove('active', 'done');
     if (i < n) ind.classList.add('done');
     if (i === n) ind.classList.add('active');
   }
+  if (n === 3) loadCatalog();
+  if (n === 4) fillOrderSummary();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -416,7 +544,7 @@ function jset(id, val) {
 function showRes(id, data, isErr) {
   document.getElementById(id).innerHTML = `
     <div class="res-box">
-      <div class="res-header ${isErr?'err':''}" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'">
+      <div class="res-header ${isErr ? 'err' : ''}" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'">
         ${isErr ? '❌ Error — click to expand' : '✅ Saved to database — click to view'}
         <span>▼</span>
       </div>
@@ -435,45 +563,157 @@ async function api(method, url, body) {
 
 function val(id) { return document.getElementById(id).value.trim(); }
 
-// ── Step 1: Register Customer ──────────────────────────────────────────────
-async function step1() {
-  const name = val('c-name'), party = val('c-party'), status = val('c-status');
-  if (!name || !party) return alert('Fill in your name and mobile number.');
-  try {
-    const d = await api('POST', `${API.tmf629}/tmf-api/customerManagement/v4/customer`, {
-      name, engagedPartyId: party, status
-    });
-    S.customerId = d.id; S.customerName = d.name;
-    jset('j-cid', d.id);
-    showRes('r1', d, false);
-    document.getElementById('a-cid').value = d.id;
-    document.getElementById('a-name').value = `${name}'s Account`;
-    setTimeout(() => showStep(2), 700);
-  } catch(e) { showRes('r1', e.data || {error: e.message}, true); }
+// ── Step 1: Auth ───────────────────────────────────────────────────────────
+function authTab(tab) {
+  document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('form-signup').classList.toggle('hidden', tab !== 'signup');
+  document.getElementById('form-login').classList.toggle('hidden', tab !== 'login');
+  document.getElementById('r1').innerHTML = '';
 }
 
-// ── Step 2: Create Account ─────────────────────────────────────────────────
+async function doSignup() {
+  const givenName = val('c-given'), familyName = val('c-family');
+  const email = val('c-email-su'), password = val('c-pass-su');
+  if (!givenName || !familyName) return alert('Enter your first and last name.');
+  if (!email) return alert('Enter your email address.');
+  if (password.length < 6) return alert('Password must be at least 6 characters.');
+  try {
+    const d = await api('POST', `${API.tmf629}/tmf-api/customerManagement/v4/auth/signup`, {
+      givenName, familyName, email, password,
+    });
+    S.customerId = d.id;
+    S.customerName = d.name;
+    S.individualId = d.engagedPartyId || null;
+    jset('j-cid', d.id);
+    if (S.individualId) jset('j-indid', S.individualId);
+    showRes('r1', d, false);
+    document.getElementById('a-cid').value = d.id;
+    document.getElementById('a-name').value = `${d.name}'s Account`;
+    createPartyRole();
+    setTimeout(() => showStep(2), 700);
+  } catch (e) { showRes('r1', e.data || { error: e.message }, true); }
+}
+
+async function doLogin() {
+  const email = val('c-email-li'), password = val('c-pass-li');
+  if (!email || !password) return alert('Enter your email and password.');
+  try {
+    const d = await api('POST', `${API.tmf629}/tmf-api/customerManagement/v4/auth/login`, {
+      email, password,
+    });
+    S.customerId = d.id;
+    S.customerName = d.name;
+    S.individualId = d.engagedPartyId || null;
+    jset('j-cid', d.id);
+    if (S.individualId) jset('j-indid', S.individualId);
+    showRes('r1', d, false);
+    document.getElementById('a-cid').value = d.id;
+    document.getElementById('a-name').value = `${d.name}'s Account`;
+    setTimeout(() => showStep(2), 700);
+  } catch (e) { showRes('r1', e.data || { error: e.message }, true); }
+}
+
+// Fire-and-forget: creates a "Subscriber" PartyRole in TMF632 after signup
+async function createPartyRole() {
+  if (!S.individualId) return;
+  try {
+    const d = await api('POST', `${API.tmf632}/tmf-api/partyManagement/v4/partyRole`, {
+      name: 'Subscriber',
+      engagedParty: { id: S.individualId, '@referredType': 'Individual' },
+    });
+    S.partyRoleId = d.id;
+    jset('j-prid', d.id);
+  } catch (e) { /* silent — role may already exist */ }
+}
+
+// ── Step 2: Create Billing Account (TMF629) ────────────────────────────────
 async function step2() {
   const name = val('a-name'), type = val('a-type');
   if (!name) return alert('Enter an account name.');
   try {
     const d = await api('POST', `${API.tmf629}/tmf-api/customerManagement/v4/customerAccount`, {
       name, accountType: type,
-      customer: { id: S.customerId }
+      customer: { id: S.customerId },
     });
     S.accountId = d.id;
     jset('j-aid', d.id);
     showRes('r2', d, false);
     setTimeout(() => showStep(3), 700);
-  } catch(e) { showRes('r2', e.data || {error: e.message}, true); }
+  } catch (e) { showRes('r2', e.data || { error: e.message }, true); }
 }
 
-// ── Step 3: Pick Plan ──────────────────────────────────────────────────────
+// ── Step 3: Pick Plan  (TMF620 catalog + TMF637 inventory) ────────────────
 let planEl = null;
-function pickPlan(el, name, price, type) {
+
+const FALLBACK_PLANS = [
+  { name: 'Jio Prepaid Lite',   price: 199,  badge: null, badgeColor: null, perks: '📞 Unlimited calls<br>📶 1 GB/day data<br>✉️ 100 SMS/day' },
+  { name: 'Jio Postpaid Plus',  price: 499,  badge: 'POPULAR', badgeColor: null, perks: '📞 Unlimited calls<br>📶 3 GB/day data<br>🎬 Disney+ Hotstar' },
+  { name: 'Jio Postpaid Elite', price: 999,  badge: 'PREMIUM', badgeColor: '#7c3aed', perks: '📞 Unlimited calls<br>📶 5 GB/day data<br>🎬 All OTT Platforms' },
+  { name: 'JioFiber Premium',   price: 1299, badge: null, badgeColor: null, perks: '🌐 100 Mbps speed<br>📶 Unlimited data<br>🎬 OTT + JioTV' },
+];
+
+function buildPlanCard(name, price, badge, badgeColor, perks) {
+  const safeName = name.replace(/'/g, "\\'");
+  return `<div class="plan" onclick="pickPlan(this,'${safeName}',${price})">
+    ${badge ? `<div class="plan-badge" style="${badgeColor ? 'background:' + badgeColor : ''}">${badge}</div>` : ''}
+    <div class="plan-name">${name}</div>
+    <div class="plan-price"><sup>₹</sup>${price} <small>/mo</small></div>
+    <div class="plan-perks">${perks}</div>
+  </div>`;
+}
+
+async function loadCatalog() {
+  const grid = document.getElementById('plans-grid');
+  const status = document.getElementById('catalog-status');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:24px;color:var(--gray);font-size:13px;">'
+    + '<span class="spin" style="border-color:rgba(11,108,212,0.3);border-top-color:var(--blue);"></span>'
+    + ' Loading plans from TMF620 catalog...</div>';
+  status.style.display = 'none';
+
+  try {
+    const offerings = await api('GET', `${API.tmf620}/tmf-api/productCatalogManagement/v4/productOffering`);
+    if (Array.isArray(offerings) && offerings.length > 0) {
+      grid.innerHTML = offerings.map(o => {
+        const priceArr = o.productOfferingPrice || [];
+        let price = 0;
+        if (priceArr.length > 0) {
+          const p = priceArr[0].price || {};
+          price = Math.round(
+            (p.taxIncludedAmount && p.taxIncludedAmount.value) ||
+            (p.dutyFreeAmount && p.dutyFreeAmount.value) ||
+            p.value || 0
+          );
+        }
+        const chars = (o.prodSpecCharValueUse || []).slice(0, 3);
+        const perks = chars.length > 0
+          ? chars.map(c => {
+              const v = (c.productSpecCharacteristicValue || [{}])[0];
+              return `• ${c.name || ''}: ${v ? v.value || '' : ''}`;
+            }).join('<br>')
+          : (o.description || '');
+        return buildPlanCard(o.name || 'Unknown Plan', price, null, null, perks);
+      }).join('');
+      status.style.display = 'block';
+      status.innerHTML = `✅ ${offerings.length} plan(s) loaded live from <strong>TMF620 Product Catalog</strong>`;
+    } else {
+      throw new Error('empty');
+    }
+  } catch (e) {
+    grid.innerHTML = FALLBACK_PLANS.map(p =>
+      buildPlanCard(p.name, p.price, p.badge, p.badgeColor, p.perks)
+    ).join('');
+    status.style.display = 'block';
+    status.innerHTML = '⚠️ TMF620 catalog empty or offline — showing default plans';
+  }
+}
+
+function pickPlan(el, name, price) {
   if (planEl) planEl.classList.remove('selected');
-  el.classList.add('selected'); planEl = el;
-  S.productName = name; S.productAmount = price;
+  el.classList.add('selected');
+  planEl = el;
+  S.productName = name;
+  S.productAmount = price;
   const btn = document.getElementById('btn-plan');
   btn.disabled = false;
   btn.textContent = `Subscribe to ${name} — ₹${price}/mo →`;
@@ -494,19 +734,51 @@ async function step3() {
     jset('j-pid', d.id);
     showRes('r3', d, false);
     setTimeout(() => showStep(4), 700);
-  } catch(e) { showRes('r3', e.data || {error: e.message}, true); }
+  } catch (e) { showRes('r3', e.data || { error: e.message }, true); }
 }
 
-// ── Step 4: Payment Method ─────────────────────────────────────────────────
+// ── Step 4: Place Order  (TMF622) ─────────────────────────────────────────
+function fillOrderSummary() {
+  document.getElementById('ord-cust').textContent = S.customerName || '-';
+  document.getElementById('ord-plan').textContent = S.productName || '-';
+  document.getElementById('ord-acc').textContent = S.accountId || '-';
+  document.getElementById('ord-amt').textContent = `₹${S.productAmount || 0}`;
+}
+
+async function step4() {
+  const btn = document.getElementById('btn-order');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Placing order...';
+  try {
+    const d = await api('POST', `${API.tmf622}/tmf-api/productOrderingManagement/v4/productOrder`, {
+      description: `${S.productName} — monthly subscription`,
+      requestedStartDate: new Date().toISOString(),
+      relatedParty: [{ id: S.customerId, name: S.customerName, '@referredType': 'Customer' }],
+      productOrderItem: [{ id: '1', quantity: 1, action: 'add', productOffering: { name: S.productName } }],
+    });
+    S.orderId = d.id;
+    jset('j-oid', d.id);
+    showRes('r4', d, false);
+    btn.disabled = false;
+    btn.textContent = 'Place Order →';
+    setTimeout(() => showStep(5), 700);
+  } catch (e) {
+    showRes('r4', e.data || { error: e.message }, true);
+    btn.disabled = false;
+    btn.textContent = 'Place Order →';
+  }
+}
+
+// ── Step 5: Payment Method  (TMF671) ──────────────────────────────────────
 function pmTab(type, el) {
-  document.querySelectorAll('.pm-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#pm-method-tabs .pm-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('pm-type').value = type;
   document.getElementById('pm-upi').classList.toggle('hidden', type !== 'UPI');
   document.getElementById('pm-card').classList.toggle('hidden', type === 'UPI');
 }
 
-async function step4() {
+async function step5() {
   const type = val('pm-type');
   let body = { name: `${S.customerName}'s ${type}`, type, customerId: S.customerId, customerName: S.customerName, isDefault: true };
 
@@ -531,18 +803,17 @@ async function step4() {
     const d = await api('POST', `${API.tmf671}/tmf-api/paymentMethodManagement/v4/paymentMethod`, body);
     S.pmId = d.id;
     jset('j-pmid', d.id);
-    showRes('r4', d, false);
-    // fill summary
+    showRes('r5', d, false);
     document.getElementById('sum-plan').textContent = S.productName;
     document.getElementById('sum-cust').textContent = S.customerName;
     document.getElementById('sum-pm').textContent = S.pmLabel;
     document.getElementById('sum-amt').textContent = `₹${S.productAmount}`;
-    setTimeout(() => showStep(5), 700);
-  } catch(e) { showRes('r4', e.data || {error: e.message}, true); }
+    setTimeout(() => showStep(6), 700);
+  } catch (e) { showRes('r5', e.data || { error: e.message }, true); }
 }
 
-// ── Step 5: Initiate + Open Razorpay ──────────────────────────────────────
-async function step5() {
+// ── Step 6: Initiate + Open Razorpay  (TMF676) ────────────────────────────
+async function step6() {
   const btn = document.getElementById('pay-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spin"></span> Creating Razorpay order...';
@@ -564,12 +835,12 @@ async function step5() {
     jset('j-payid', d.internalPaymentId);
     jset('j-rzpord', d.razorpayOrderId);
     jset('j-stat', '⏳ pending');
-    showRes('r5', d, false);
+    showRes('r6', d, false);
     btn.disabled = false;
     btn.textContent = 'Pay with Razorpay →';
     openRazorpay(d);
-  } catch(e) {
-    showRes('r5', e.data || {error: e.message}, true);
+  } catch (e) {
+    showRes('r6', e.data || { error: e.message }, true);
     btn.disabled = false;
     btn.textContent = 'Pay with Razorpay →';
   }
@@ -585,21 +856,147 @@ function openRazorpay(d) {
     description: `${S.productName} — Monthly Subscription`,
     prefill: { name: S.customerName, email: 'test@jio.com', contact: '9999999999' },
     theme: { color: '#0B6CD4' },
-    handler: function(resp) {
+    handler: function (resp) {
       jset('j-rzppay', resp.razorpay_payment_id);
       jset('j-stat', '⏳ confirming...');
-      showStep(6);
+      showStep(7);
       pollStatus(S.paymentId);
+      sendAiNotification();
+      sendUsage();
     },
   });
-  rzp.on('payment.failed', function(resp) {
+  rzp.on('payment.failed', function (resp) {
     jset('j-stat', '❌ failed');
-    showRes('r5', resp.error, true);
+    showRes('r6', resp.error, true);
   });
   rzp.open();
 }
 
-// ── Step 6: Poll payment status ────────────────────────────────────────────
+// ── AI: Plan Recommendation  (TMF701) ─────────────────────────────────────
+async function getAiRecommendation() {
+  const btn = document.getElementById('ai-rec-btn');
+  const result = document.getElementById('ai-rec-result');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Asking Gemini...';
+  result.style.display = 'none';
+  try {
+    const d = await api('POST', `${API.tmf701}/tmf-api/processFlowManagement/v4/recommend`, {
+      customerId: S.customerId || 'guest',
+      monthlyBudget: document.getElementById('ai-budget').value || 'not specified',
+      dataUsageGb: document.getElementById('ai-data').value || 'not specified',
+      preferences: document.getElementById('ai-prefs').value || 'general use',
+    });
+    result.style.display = 'block';
+    result.innerHTML = '🤖 <strong>Gemini says:</strong><br>' + (d.recommendation || '').replace(/\n/g, '<br>');
+  } catch (e) {
+    result.style.display = 'block';
+    result.innerHTML = '❌ Could not get recommendation. Is the process-flow-service running?';
+  }
+  btn.disabled = false;
+  btn.innerHTML = '✨ Get AI Recommendation';
+}
+
+// ── AI: Welcome SMS  (TMF681) ─────────────────────────────────────────────
+async function sendAiNotification() {
+  try {
+    const d = await api('POST', `${API.tmf681}/tmf-api/communicationManagement/v4/communicationMessage/ai-generate`, {
+      eventType: 'subscription_success',
+      customerId: S.customerId,
+      customerName: S.customerName,
+      details: `Rs ${S.productAmount} for ${S.productName}`,
+    });
+    document.getElementById('ai-sms-text').innerHTML = (d.content || '').replace(/\n/g, '<br>');
+    document.getElementById('ai-sms-wrap').style.display = 'block';
+  } catch (e) { /* fire-and-forget */ }
+}
+
+// ── Usage Record  (TMF635) ────────────────────────────────────────────────
+async function sendUsage() {
+  try {
+    const d = await api('POST', `${API.tmf635}/tmf-api/usageManagement/v4/usage`, {
+      usageType: 'DATA',
+      usageDate: new Date().toISOString(),
+      quantity: 1,
+      unit: 'subscription',
+      status: 'received',
+      customerId: S.customerId,
+      customerName: S.customerName,
+      productId: S.productId,
+      productName: S.productName,
+      description: `Subscription activated: ${S.productName} — ₹${S.productAmount}/mo`,
+    });
+    S.usageId = d.id;
+    jset('j-usid', d.id);
+    document.getElementById('usage-text').innerHTML =
+      `🆔 <strong>Usage ID:</strong> <code>${d.id}</code><br>` +
+      `📦 <strong>Product:</strong> ${S.productName}<br>` +
+      `📅 <strong>Date:</strong> ${new Date(d.usageDate || d.createdAt).toLocaleString()}<br>` +
+      `📊 <strong>Status:</strong> <span class="badge b-green">received</span>`;
+    document.getElementById('usage-wrap').style.display = 'block';
+  } catch (e) { /* fire-and-forget */ }
+}
+
+// ── Floating AI Chat  (TMF701 /chat → Groq) ───────────────────────────────
+let chatOpen = false;
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chat-window').classList.toggle('hidden', !chatOpen);
+  document.getElementById('chat-toggle-btn').textContent = chatOpen ? '✕' : '💬';
+  if (chatOpen) document.getElementById('chat-input').focus();
+}
+
+function currentStep() {
+  for (let i = 1; i <= 7; i++) {
+    if (!document.getElementById(`s${i}`).classList.contains('hidden')) return String(i);
+  }
+  return '1';
+}
+
+function chatContext() {
+  const parts = [];
+  if (S.customerName)  parts.push(`Customer: ${S.customerName}`);
+  if (S.productName)   parts.push(`Plan: ${S.productName} (₹${S.productAmount}/mo)`);
+  if (S.orderId)       parts.push(`Order: ${S.orderId}`);
+  if (S.paymentId)     parts.push(`Payment: ${S.paymentId}`);
+  return parts.join(', ');
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  const msgs = document.getElementById('chat-messages');
+  const btn  = document.getElementById('chat-send-btn');
+
+  msgs.innerHTML += `<div class="msg user">${msg}</div>`;
+  input.value = '';
+  btn.disabled = true;
+
+  const tid = 'think-' + Date.now();
+  msgs.innerHTML += `<div class="msg thinking" id="${tid}">thinking…</div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+
+  try {
+    const d = await api('POST', `${API.tmf701}/tmf-api/processFlowManagement/v4/chat`, {
+      message: msg,
+      step: currentStep(),
+      context: chatContext(),
+    });
+    document.getElementById(tid).remove();
+    msgs.innerHTML += `<div class="msg bot">${(d.reply || 'Sorry, no response.').replace(/\n/g, '<br>')}</div>`;
+  } catch (e) {
+    document.getElementById(tid).remove();
+    msgs.innerHTML += `<div class="msg bot">❌ AI unavailable — is process-flow-service running on :8089?</div>`;
+  }
+
+  btn.disabled = false;
+  msgs.scrollTop = msgs.scrollHeight;
+  input.focus();
+}
+
+// ── Step 7: Poll Payment Status ────────────────────────────────────────────
 async function pollStatus(id, tries = 0) {
   const el = document.getElementById('pay-status');
   if (tries > 12) {
@@ -625,10 +1022,10 @@ async function pollStatus(id, tries = 0) {
     } else if (d.status === 'rejected') {
       el.innerHTML = `<span class="badge b-red">REJECTED</span> Payment failed. Check Razorpay dashboard.`;
     } else {
-      el.innerHTML = `<span class="badge b-yellow">PENDING</span> Waiting for Razorpay webhook... (retry ${tries+1}/12)`;
+      el.innerHTML = `<span class="badge b-yellow">PENDING</span> Waiting for Razorpay webhook... (retry ${tries + 1}/12)`;
       setTimeout(() => pollStatus(id, tries + 1), 3000);
     }
-  } catch(e) {
+  } catch (e) {
     setTimeout(() => pollStatus(id, tries + 1), 3000);
   }
 }
