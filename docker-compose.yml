@@ -187,6 +187,7 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: Saanvi@999
       SERVICES_LITELLM_URL: http://litellm:4000
+      LITELLM_API_KEY: sk-J1ywBwZK61zwGrWDk2gldg
     depends_on:
       mariadb:
         condition: service_healthy
@@ -207,6 +208,7 @@ services:
       SERVICES_TMF629_URL: http://customer-management-service:8083
       SERVICES_TMF622_URL: http://product-order-service:8080
       SERVICES_LITELLM_URL: http://litellm:4000
+      LITELLM_API_KEY: sk-Ixht7zp9CDMESRPGGGCSOg
     depends_on:
       mariadb:
         condition: service_healthy

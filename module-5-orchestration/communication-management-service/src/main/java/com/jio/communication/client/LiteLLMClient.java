@@ -15,19 +15,20 @@ public class LiteLLMClient {
 
     private final RestTemplate restTemplate;
     private final String liteLLMUrl;
-
-    private static final String MASTER_KEY = "sk-jio-1234";
+    private final String liteLLMApiKey;
 
     public LiteLLMClient(RestTemplate restTemplate,
-                         @Value("${services.litellm.url:http://localhost:4000}") String liteLLMUrl) {
+                         @Value("${services.litellm.url:http://localhost:4000}") String liteLLMUrl,
+                         @Value("${litellm.api.key:sk-jio-1234}") String liteLLMApiKey) {
         this.restTemplate = restTemplate;
         this.liteLLMUrl = liteLLMUrl;
+        this.liteLLMApiKey = liteLLMApiKey;
     }
 
     public String chat(String systemPrompt, String userMessage, String model) {
         try {
             HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer " + MASTER_KEY);
+            headers.set("Authorization", "Bearer " + liteLLMApiKey);
             headers.set("Content-Type", "application/json");
 
             var body = Map.of(
